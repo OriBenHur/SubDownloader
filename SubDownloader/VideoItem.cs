@@ -31,6 +31,10 @@ namespace SubDownloader
 
         public bool IsTV { get; set; }
 
+        public string Format { get ; set; }
+
+        public string Group { get; set; }
+
         public VideoItem(string filename, string name = null)
         {
             if (filename == null)

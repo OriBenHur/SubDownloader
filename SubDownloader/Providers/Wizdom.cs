@@ -32,11 +32,11 @@ namespace SubDownloader.Providers
             var size = name.Length + yearSize+ se.Length + ep.Length + 1;
             var tmpfile = file.Substring(size);
             tmpfile = tmpfile.StartsWith(".") ? tmpfile.Substring(1) : tmpfile;
-            var format = Utils.SercheMatch(tmpfile,Matches.FormatRegex);
+            videoItem.Format = Utils.SercheMatch(tmpfile,Matches.FormatRegex);
             var imdBid = Utils.GetImdbId(name, year, videoItem);
             if (imdBid.Equals("")) yield break;
             Uri.TryCreate(new Uri("http://json.wizdom.xyz/") ,"[].json".Replace("[]", imdBid), out Uri uri);
-            var tFile = file.Substring(size + format.Length);
+            var tFile = file.Substring(size + videoItem.Format.Length);
             tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
             var id = Utils.GetId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
             if (id == "") yield break;

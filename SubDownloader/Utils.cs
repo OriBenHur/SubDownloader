@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using TMDbLib.Client;
 using TVDBSharp;
 using System.Configuration;
+using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 
 namespace SubDownloader
@@ -148,9 +149,22 @@ namespace SubDownloader
         }
 
 
-        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem)
+        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem )
         {
-            var releaseGroup = SercheMatch(input ,Matches.GroupRegex);
+            var searchTerm = "release_group";
+            videoitem.Group = SercheMatch(input ,Matches.GroupRegex);
+            var searchBy = videoitem.Group;
+            if (videoitem.Group.Equals(""))
+            {
+                var noGroup = MessageBox.Show($@"Can't Find Realse Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Realse Group Name",MessageBoxButtons.YesNo);
+                if (noGroup == DialogResult.No) return "";
+                foreach (Match match in Regex.Matches(videoitem.Format.ToLower(), Matches.FormatLIst.ToLower()))
+                {
+                    searchBy = match.Value;
+                    searchTerm = "format";
+                    break;
+                }
+            }
             using (var webClient = new WebClient())
             {
                 webClient.Encoding = Encoding.UTF8;
@@ -161,9 +175,9 @@ namespace SubDownloader
                 var subs = videoitem.IsTV ? subsToken[s][e] : token.SelectToken("subs");
                 foreach (var sub in subs)
                 {
-                    var subReleaseGroup = sub["release_group"].ToString().ToLower();
-                    if (sub["release_group"] == null) continue;
-                    if (subReleaseGroup.Equals(releaseGroup))
+                    var subTerm = sub[searchTerm].ToString().ToLower();
+                    if (sub[searchTerm] == null) continue;
+                    if (subTerm.Equals(searchBy))
                         return sub["id"].ToString();
                 }
             }
@@ -178,10 +192,10 @@ namespace SubDownloader
         {
             //<Decryption Key> is the part you need for it to work when you compile it yourself 
             //for obvious reasons i didn't include my key 
-            var tvdBkey = CryptorEngine.Decrypt(CryptTextTvdb, true, "<Decryption_Key>");
-            var tvdBapikey = CryptorEngine.Decrypt(tvdBkey, true, "<Decryption_Key>");
-            var tmbDkey = CryptorEngine.Decrypt(CryptTextTmdb, true, "<Decryption_Key>");
-            var tmdBapikey = CryptorEngine.Decrypt(tmbDkey, true, "<Decryption_Key>");
+			var tvdBkey = CryptorEngine.Decrypt(CryptTextTvdb, true, "<Decryption_Key>");
+			var tvdBapikey = CryptorEngine.Decrypt(tvdBkey, true, "<Decryption_Key>");
+			var tmbDkey = CryptorEngine.Decrypt(CryptTextTmdb, true, "<Decryption_Key>");
+			var tmdBapikey = CryptorEngine.Decrypt(tmbDkey, true, "<Decryption_Key>");
 
             if (videoItem.IsTV)
             {
@@ -237,7 +251,10 @@ namespace SubDownloader
                 tmp = match.Value;
                 index.Add(input.ToLower().IndexOf(tmp, StringComparison.Ordinal));
             }
-            return index.Count > 1 ? input.Substring(index[0], index[index.Count - 1] + tmp.Length + 1 - index[0]) : tmp;
+            if (index.Count == 0) return "";
+            var size = index[index.Count - 1] + tmp.Length + 1 - index[0];
+            if (size - input.Length <= 1) return input;
+                return index.Count > 1 ? input.Substring(index[0], size) : tmp;
         }
 
     }
