@@ -216,22 +216,11 @@ namespace SubDownloader
             return "";
         }
 
-
-        private static string GetReleaseGroup(string file)
-        {
-            var m = Regex.Match(file, Matches.GroupRegex.ToString());
-            return m.Value;
-        }
         internal static string FixSeriesName(string name)
         {
             return string.Equals(name, null, StringComparison.Ordinal) ? null : name.Replace(" ", "-");
         }
 
-        //public static string GetRealseFormat(string file)
-        //{
-        //    var m = Regex.Match(file, Regexs.formatRegex.ToString());
-        //    return m.Value;
-        //}
         public static int GetYear(string file)
         {
             const string mPattern = "(?:(?:19|20)[0-9]{2})";

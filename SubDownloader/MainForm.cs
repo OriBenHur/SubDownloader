@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 using System.Xml.Linq;
 using SubDownloader.Providers;
 
@@ -330,9 +331,24 @@ namespace SubDownloader
             //object doc2 = null;
             var xmlUrl =
                 @"https://onedrive.live.com/download?cid=D9DE3B3ACC374428&resid=D9DE3B3ACC374428%217999&authkey=ADJwQu1VOTfAOVg";
-            Version appVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
             var appName = Assembly.GetExecutingAssembly().GetName().Name;
-            var doc = XDocument.Load(xmlUrl);
+            var doc = new XDocument();
+            try
+            {
+                doc = XDocument.Load(xmlUrl);
+                //doc = XDocument.Load(@"D:\OneDrive\update - Copy.xml");
+
+            }
+            catch (Exception e)
+            {
+                using (StreamWriter file =
+                    new StreamWriter(@"ErrorLog.txt", true))
+                {
+                    file.WriteLine($"---------------------------{DateTime.Now}---------------------------{Environment.NewLine} {e}{Environment.NewLine}");
+                }
+                Environment.Exit(-1);
+            }
             try
             {
                 foreach (var dm in doc.Descendants(appName))
@@ -345,18 +361,15 @@ namespace SubDownloader
                     downloadUrl = urlelEment.Value;
                     change = dm.Element(@"change_log");
                 }
-                //doc2 = XDocument.Load(change.Value);
-
-
             }
             catch (Exception exception)
             {
-                MessageBox.Show(exception.Message);
+                MessageBox.Show(exception.Message + Environment.NewLine +exception.Source);
             }
 
             if (appVersion.CompareTo(newVersion) < 0)
             {
-                Debug.Assert(change != null, "change != null");
+                //Debug.Assert(change != null, "change != null");
                 change.Value = change.Value;
                 var result = MessageBox.Show(
                     $@"{appName.Replace('_', ' ')} v.{newVersion} is out!{Environment.NewLine}{change.Value}",
