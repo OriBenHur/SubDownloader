@@ -33,7 +33,6 @@
             this._panelMain = new System.Windows.Forms.Panel();
             this._listBoxWatchedFolders = new System.Windows.Forms.ListBox();
             this._rtbLog = new System.Windows.Forms.RichTextBox();
-            this._rtbLogContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this._toolStripWatchedFolders = new System.Windows.Forms.ToolStrip();
             this._tsBtnRemoveFolder = new System.Windows.Forms.ToolStripButton();
             this._tsBtnAddFolder = new System.Windows.Forms.ToolStripButton();
@@ -44,6 +43,7 @@
             this._toolStripDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this._cheackForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this._ntfyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this._panelMain.SuspendLayout();
             this._toolStripWatchedFolders.SuspendLayout();
             this.SuspendLayout();
@@ -67,12 +67,14 @@
             this._listBoxWatchedFolders.Location = new System.Drawing.Point(0, 25);
             this._listBoxWatchedFolders.Name = "_listBoxWatchedFolders";
             this._listBoxWatchedFolders.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
             this._listBoxWatchedFolders.Size = new System.Drawing.Size(927, 212);
             this._listBoxWatchedFolders.TabIndex = 3;
-            this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
+            //this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
             this._listBoxWatchedFolders.DragDrop += new System.Windows.Forms.DragEventHandler(this._listBoxWatchedFolders_DragDrop);
             this._listBoxWatchedFolders.DragEnter += new System.Windows.Forms.DragEventHandler(this._listBoxWatchedFolders_DragEnter);
             this._listBoxWatchedFolders.KeyDown += new System.Windows.Forms.KeyEventHandler(this._listBoxWatchedFolders_KeyDown);
+            this._listBoxWatchedFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this._listBoxWatchedFolders_MouseUp);
             // 
             // _rtbLog
             // 
@@ -92,13 +94,6 @@
             this._rtbLog.TabIndex = 4;
             this._rtbLog.Text = "";
             this._rtbLog.MouseUp += new System.Windows.Forms.MouseEventHandler(this._rtbLog_MouseUp);
-            // 
-            // _rtbLogContextMenuStrip
-            // 
-            this._rtbLogContextMenuStrip.Name = "_rtbLogContextMenuStrip";
-            this._rtbLogContextMenuStrip.Size = new System.Drawing.Size(61, 4);
-            this._rtbLogContextMenuStrip.Text = "Clear Log";
-            //this._rtbLogContextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this._rtbLogContextMenuStrip_Opening);
             // 
             // _toolStripWatchedFolders
             // 
@@ -193,6 +188,13 @@
             this._ntfyIcon.Text = "Subtitle Downloader";
             this._ntfyIcon.Visible = true;
             // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 26);
+            this.contextMenuStrip1.Text = "Open Folder Loction";
+            //this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -231,6 +233,6 @@
         private System.Windows.Forms.NotifyIcon _ntfyIcon;
         #endregion
 
-        private System.Windows.Forms.ContextMenuStrip _rtbLogContextMenuStrip;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     }
 }
