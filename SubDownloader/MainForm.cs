@@ -18,14 +18,13 @@ namespace SubDownloader
 
 
         private string[] SelectedFolders => (from object item in _listBoxWatchedFolders.SelectedItems
-            select item.ToString()).ToArray();
+                                             select item.ToString()).ToArray();
 
         public MainForm()
         {
             InitializeComponent();
             Load += Form1_Load;
             _tsBtnRemoveFolder.Enabled = false;
-            _listBoxWatchedFolders.SelectedIndexChanged += listBoxWatchedFolders_SelectedIndexChanged;
             _activeConnections = 0;
         }
 
@@ -52,7 +51,7 @@ namespace SubDownloader
         {
             Log("Starting timer...");
             if (_timer == null)
-                    _timer = new System.Windows.Forms.Timer();
+                _timer = new System.Windows.Forms.Timer();
             _timer.Interval = Data.Instance.UpdateInterval * 60 * 1000;
             _timer.Tick += (EventHandler)((s, e) => SearchSubtitles());
             _timer.Start();
@@ -128,13 +127,13 @@ namespace SubDownloader
                 _isDoubleClick = true;
             };
             _ntfyIcon.MouseClick += (MouseEventHandler)((s, e) =>
-            {
-                if (e.Button != MouseButtons.Left)
-                    return;
-                Thread.Sleep(150);
-                Application.DoEvents();
-                _isDoubleClick = false;
-            });
+           {
+               if (e.Button != MouseButtons.Left)
+                   return;
+               Thread.Sleep(150);
+               Application.DoEvents();
+               _isDoubleClick = false;
+           });
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.MenuItems.Add("Exit", (s, e) => Exit());
             _ntfyIcon.ContextMenu = contextMenu;
@@ -154,11 +153,11 @@ namespace SubDownloader
                 action.BeginInvoke(str, iar => --activeDownloaders[0], null);
             }
             ((Action)(() =>
-            {
-                while (_activeConnections > 0 || activeDownloaders[0] > 0)
-                    Thread.Sleep(500);
-                StartTimer();
-            })).BeginInvoke(null, null);
+           {
+               while (_activeConnections > 0 || activeDownloaders[0] > 0)
+                   Thread.Sleep(500);
+               StartTimer();
+           })).BeginInvoke(null, null);
         }
 
         private void SearchSubtitles(string folder)
@@ -189,51 +188,51 @@ namespace SubDownloader
                         ++activeConnections[0];
                         ++_activeConnections;
                         ((Action)(() =>
-                        {
-                            foreach (ISubtitleProvider subtitlesProvider in Data.Instance.SubtitlesProviders)
-                            {
-                                Log("Processing " + videoItem.OriginalName + ", provider: " + subtitlesProvider.Name);
-                                List<SubtitleItem> subtitles = GetSubtitles(videoItem, subtitlesProvider);
-                                if (subtitles.Count > 0)
-                                {
-                                    Log(videoItem.OriginalName + ": Downloading subtitles.");
-                                    string file = Utils.DownloadFile(subtitles[0].Url);
-                                    if (file != null)
-                                    {
-                                        string str = Utils.Extract(file);
-                                        if (str != null)
-                                        {
-                                            try
-                                            {
-                                                var ext = Path.GetExtension(str).Equals(".str")
-                                                    ? ".srt"
-                                                    : Path.GetExtension(str);
-                                                var destFileName = Path.ChangeExtension(videoItem.FileName, ext);
-                                                if (destFileName != null) File.Copy(str, destFileName, true);
-                                                File.Delete(str);
-                                                Log(videoItem.OriginalName + ": Subtitles downloaded.", Color.Green);
-                                                break;
-                                            }
-                                            catch
-                                            {
-                                                Log(videoItem.OriginalName + ": Error while copying subtitle file.",
-                                                    Color.Red);
-                                            }
-                                        }
-                                        else
-                                            Log(videoItem.OriginalName + ": Extraction error.", Color.Red);
-                                    }
-                                    else
-                                        Log(videoItem.OriginalName + ": Download error.", Color.Red);
-                                }
-                                else
-                                    Log(videoItem.OriginalName + ": No subtitles found.", Color.Red);
-                            }
-                        })).BeginInvoke(iar =>
-                        {
-                            --activeConnections[0];
-                            --_activeConnections;
-                        }, null);
+                       {
+                           foreach (ISubtitleProvider subtitlesProvider in Data.Instance.SubtitlesProviders)
+                           {
+                               Log("Processing " + videoItem.OriginalName + ", provider: " + subtitlesProvider.Name);
+                               List<SubtitleItem> subtitles = GetSubtitles(videoItem, subtitlesProvider);
+                               if (subtitles.Count > 0)
+                               {
+                                   Log(videoItem.OriginalName + ": Downloading subtitles.");
+                                   string file = Utils.DownloadFile(subtitles[0].Url);
+                                   if (file != null)
+                                   {
+                                       string str = Utils.Extract(file);
+                                       if (str != null)
+                                       {
+                                           try
+                                           {
+                                               var ext = Path.GetExtension(str).Equals(".str")
+                                                   ? ".srt"
+                                                   : Path.GetExtension(str);
+                                               var destFileName = Path.ChangeExtension(videoItem.FileName, ext);
+                                               if (destFileName != null) File.Copy(str, destFileName, true);
+                                               File.Delete(str);
+                                               Log(videoItem.OriginalName + ": Subtitles downloaded.", Color.Green);
+                                               break;
+                                           }
+                                           catch
+                                           {
+                                               Log(videoItem.OriginalName + ": Error while copying subtitle file.",
+                                                   Color.Red);
+                                           }
+                                       }
+                                       else
+                                           Log(videoItem.OriginalName + ": Extraction error.", Color.Red);
+                                   }
+                                   else
+                                       Log(videoItem.OriginalName + ": Download error.", Color.Red);
+                               }
+                               else
+                                   Log(videoItem.OriginalName + ": No subtitles found.", Color.Red);
+                           }
+                       })).BeginInvoke(iar =>
+                       {
+                           --activeConnections[0];
+                           --_activeConnections;
+                       }, null);
                     }
                     else
                         Log(videoItem.OriginalName + ": Already Have Subtitle", Color.Cyan);
@@ -248,6 +247,7 @@ namespace SubDownloader
         }
 
         private bool _initialized;
+
         private void Form1_Load(object sender, EventArgs e)
         {
             if (_initialized) return;
@@ -260,6 +260,7 @@ namespace SubDownloader
         private void listBoxWatchedFolders_SelectedIndexChanged(object sender, EventArgs e)
         {
             _tsBtnRemoveFolder.Enabled = SelectedFolders != null;
+
         }
 
         private void _tsBtnAddFolder_Click(object sender, EventArgs e)
@@ -345,7 +346,8 @@ namespace SubDownloader
                 using (StreamWriter file =
                     new StreamWriter(@"ErrorLog.txt", true))
                 {
-                    file.WriteLine($"---------------------------{DateTime.Now}---------------------------{Environment.NewLine} {e}{Environment.NewLine}");
+                    file.WriteLine(
+                        $"---------------------------{DateTime.Now}---------------------------{Environment.NewLine} {e}{Environment.NewLine}");
                 }
                 Environment.Exit(-1);
             }
@@ -364,7 +366,7 @@ namespace SubDownloader
             }
             catch (Exception exception)
             {
-                MessageBox.Show(exception.Message + Environment.NewLine +exception.Source);
+                MessageBox.Show(exception.Message + Environment.NewLine + exception.Source);
             }
 
             if (appVersion.CompareTo(newVersion) < 0)
@@ -422,15 +424,13 @@ namespace SubDownloader
 
         private void _rtbLog_MouseUp(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-               
-                ContextMenu contextMenu = new ContextMenu();
-                MenuItem menuItem = new MenuItem("Clear Log");
-                menuItem.Click += Clear;
-                contextMenu.MenuItems.Add(menuItem);
-                _rtbLog.ContextMenu = contextMenu;
-            }
+
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem menuItem = new MenuItem("Clear Log");
+            menuItem.Click += Clear;
+            contextMenu.MenuItems.Add(menuItem);
+            _rtbLog.ContextMenu = contextMenu;
+
         }
 
         private void Clear(object sender, EventArgs e)
@@ -438,5 +438,21 @@ namespace SubDownloader
             _rtbLog.Clear();
             InitializeUi();
         }
+
+        private void Open(object sender, EventArgs e)
+        {
+            var folder = _listBoxWatchedFolders.SelectedItem;
+            Process.Start(folder.ToString());
+        }
+        private void _listBoxWatchedFolders_MouseUp(object sender, MouseEventArgs e)
+        {
+            ContextMenu menu = new ContextMenu();
+            MenuItem menuItem = new MenuItem("Open Folder");
+            menuItem.Click += Open;
+            menu.MenuItems.Add(menuItem);
+            _listBoxWatchedFolders.ContextMenu = menu;
+
+        }
     }
+
 }
