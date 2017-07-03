@@ -1,7 +1,4 @@
-﻿//using System.Collections.Generic.;
-//using System.Windows.Forms;
-
-namespace SubDownloader
+﻿namespace SubDownloader
 {
     partial class ProgramSettings
     {

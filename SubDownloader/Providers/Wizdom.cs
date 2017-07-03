@@ -8,21 +8,39 @@ namespace SubDownloader.Providers
     {
         public string Name => "Wizdom";
 
-
         public IEnumerable<SubtitleItem> GetSubtitles(VideoItem videoItem)
         {
-            var name = Utils.FixSeriesName(videoItem.Name);
+            var se = "";
+            var ep = "";
+            var yearSize = 0;
+            var name = videoItem.Name;
             var season = videoItem.Season;
+            if (season > 0)
+                se = season < 10 ? "s0" + season : "s" + season;
+           
             var episode = videoItem.Episode;
+            if (episode > 0)
+                ep = episode < 10 ? "e0" + episode : "e" + episode;
+
             var file = Path.GetFileNameWithoutExtension(videoItem.FileName);
             var year = Utils.GetYear(file);
-            var imdBid = Utils.GetImdbId(file, name.Replace("-", " "), year);
+
+            if (year > 0)
+                yearSize =  season > 0 && episode > 0 ? year.ToString().Length - Name.Length + 2 : year.ToString().Length;
+                
+
+            var size = name.Length + yearSize+ se.Length + ep.Length + 1;
+            var tmpfile = file.Substring(size);
+            tmpfile = tmpfile.StartsWith(".") ? tmpfile.Substring(1) : tmpfile;
+            var format = Utils.SercheMatch(tmpfile,Matches.FormatRegex);
+            var imdBid = Utils.GetImdbId(name, year, videoItem);
             if (imdBid.Equals("")) yield break;
-            var uri = new Uri("http://json.wizdom.xyz/[].json".Replace("[]", imdBid));
-            var id = Utils.GetId(uri.ToString(), file, season.ToString(), episode.ToString());
+            Uri.TryCreate(new Uri("http://json.wizdom.xyz/") ,"[].json".Replace("[]", imdBid), out Uri uri);
+            var tFile = file.Substring(size + format.Length);
+            tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
+            var id = Utils.GetId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
             if (id == "") yield break;
-            Uri url;
-            if (Uri.TryCreate(new Uri("http://zip.wizdom.xyz/"), "[].zip".Replace("[]", id), out url))
+            if (Uri.TryCreate(new Uri("http://zip.wizdom.xyz/"),"[].zip".Replace("[]",id), out Uri url))
                 yield return new SubtitleItem(file, url);
         }
     }

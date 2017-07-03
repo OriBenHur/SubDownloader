@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using TMDbLib.Client;
 using TVDBSharp;
 using System.Configuration;
+using System.Windows.Forms.VisualStyles;
 
 namespace SubDownloader
 
@@ -147,45 +148,23 @@ namespace SubDownloader
         }
 
 
-        internal static string GetId(string jsonUrl, string file, string s, string e)
+        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem)
         {
-            var releaseGroup = GetReleaseGroup(file);
-            if (GetType(file))
+            var releaseGroup = SercheMatch(input ,Matches.GroupRegex);
+            using (var webClient = new WebClient())
             {
-
-                using (var webClient = new WebClient())
+                webClient.Encoding = Encoding.UTF8;
+                var json = webClient.DownloadString(jsonUrl);
+                if (json.Equals("")) return "";
+                var token = JToken.Parse(json);
+                var subsToken = token.SelectToken("subs");
+                var subs = videoitem.IsTV ? subsToken[s][e] : token.SelectToken("subs");
+                foreach (var sub in subs)
                 {
-                    webClient.Encoding = Encoding.UTF8;
-                    var json = webClient.DownloadString(jsonUrl);
-                    var token = JToken.Parse(json);
-                    var subsToken = token.SelectToken("subs");
-                    var subs = subsToken[s][e];
-                    foreach (var sub in subs)
-                    {
-                        if (sub["release_group"] == null) continue;
-                        if (sub["release_group"].ToString().ToLower().Equals(releaseGroup.ToLower()))
-                            return sub["id"].ToString();
-                    }
-
-
-                }
-            }
-
-            else
-            {
-                using (var webClient = new WebClient())
-                {
-                    webClient.Encoding = Encoding.UTF8;
-                    var json = webClient.DownloadString(jsonUrl);
-                    var token = JToken.Parse(json);
-                    var subs = token.SelectToken("subs");
-                    foreach (var sub in subs)
-                    {
-                        if (sub["version"].ToString().ToLower().Equals(file.ToLower()))
-                            return sub["id"].ToString();
-                    }
-
-
+                    var subReleaseGroup = sub["release_group"].ToString().ToLower();
+                    if (sub["release_group"] == null) continue;
+                    if (subReleaseGroup.Equals(releaseGroup))
+                        return sub["id"].ToString();
                 }
             }
 
@@ -195,7 +174,7 @@ namespace SubDownloader
 
         private const string CryptTextTvdb = "PImMrxx0MMjVFHdMN1NcdnFS4up3EAvNQVjb3axWKzTMMrLaL22uRw==";
         private const string CryptTextTmdb = "4RqX+Sb+Qcp+tTgHbnYPAlirDXLFV4BPzzGa282upRN2Igmb4frbEnyCNB7Map96m4q/w+l7DalM6VAEJgambQ==";
-        internal static string GetImdbId(string file, string name, int year)
+        internal static string GetImdbId(string name, int year, VideoItem videoItem)
         {
             //<Decryption Key> is the part you need for it to work when you compile it yourself 
             //for obvious reasons i didn't include my key 
@@ -204,9 +183,7 @@ namespace SubDownloader
             var tmbDkey = CryptorEngine.Decrypt(CryptTextTmdb, true, "<Decryption_Key>");
             var tmdBapikey = CryptorEngine.Decrypt(tmbDkey, true, "<Decryption_Key>");
 
-            const string imdBid = "";
-
-            if (GetType(file))
+            if (videoItem.IsTV)
             {
                 var tvdb = new TVDB(tvdBapikey);
                 var searchResults = tvdb.Search(name);
@@ -214,6 +191,12 @@ namespace SubDownloader
                 foreach (var item in searchResults)
                 {
                     if (item.Name.ToLower().Equals(name)) return item.ImdbId;
+                    if (year > 0)
+                    {
+                        var tmpName = name.Replace(year.ToString(), String.Empty);
+                        tmpName = $@"{tmpName}({year})";
+                        if (item.Name.ToLower().Equals(tmpName)) return item.ImdbId;
+                    }
                 }
             }
 
@@ -230,27 +213,42 @@ namespace SubDownloader
                 }
             }
 
-            return imdBid;
+            return "";
         }
 
 
         private static string GetReleaseGroup(string file)
         {
-            var m = Regex.Match(file, Regexs.groupRegex.ToString());
+            var m = Regex.Match(file, Matches.GroupRegex.ToString());
             return m.Value;
         }
         internal static string FixSeriesName(string name)
         {
-            if (string.Equals(name, null, StringComparison.Ordinal))
-                return null;
-            return name.Replace(" ", "-");
+            return string.Equals(name, null, StringComparison.Ordinal) ? null : name.Replace(" ", "-");
         }
 
+        //public static string GetRealseFormat(string file)
+        //{
+        //    var m = Regex.Match(file, Regexs.formatRegex.ToString());
+        //    return m.Value;
+        //}
         public static int GetYear(string file)
         {
             const string mPattern = "(?:(?:19|20)[0-9]{2})";
             var m = Regex.Match(file, mPattern);
             return Convert.ToInt32(!m.Success ? "0" : m.Value);
+        }
+
+        public static string SercheMatch(string input, string pattern)
+        {
+            var tmp = @"";
+            var index = new List<int>();
+            foreach (Match match in Regex.Matches(input.ToLower(), pattern.ToLower()))
+            {
+                tmp = match.Value;
+                index.Add(input.ToLower().IndexOf(tmp, StringComparison.Ordinal));
+            }
+            return index.Count > 1 ? input.Substring(index[0], index[index.Count - 1] + tmp.Length + 1 - index[0]) : tmp;
         }
 
     }

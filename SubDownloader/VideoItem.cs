@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: SubtitleDownloader.VideoItem
-// Assembly: SubtitleDownloader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 303B1D91-376D-46F0-BE96-AABE09279493
-// Assembly location: C:\Users\Ori\Downloads\SubtitleDownloader\SubtitleDownloader.exe
-
-using System.IO;
+﻿using System.IO;
 using System.Text.RegularExpressions;
 
 namespace SubDownloader
@@ -31,9 +25,11 @@ namespace SubDownloader
 
         public int Episode { get; private set; }
 
-        public int Episode2 { get; private set; }
+        private int Episode2 { get; set; }
 
         public string ExtraInfo { get; private set; }
+
+        public bool IsTV { get; set; }
 
         public VideoItem(string filename, string name = null)
         {
@@ -46,10 +42,10 @@ namespace SubDownloader
 
         private void ParseName()
         {
-            Match match = null;
-            if (Utils.GetType(OriginalName))
+            IsTV = Utils.GetType(OriginalName);
+            if (IsTV)
             {
-                match = Regex.Match(OriginalName, "^(?:.*\\\\)?(?<series>[^\\\\]+?)[ _.\\-\\[]+(?:[s]?(?<season>\\d+)[ _.\\-\\[\\]]*[ex](?<episode>\\d+)|(?:\\#|\\-\\s)(?<season>(?!(?:\\d{4}.\\d{2}.\\d{2}|\\d{2}.\\d{2}.\\d{4}))\\d+)\\.(?<episode>\\d+))(?:[ _.+-]+(?:[s]?\\k<season>[ _.\\-\\[\\]]*[ex](?<episode2>\\d+)|(?:\\#|\\-\\s)\\k<season>\\.(?<episode2>\\d+))|(?:[ _.+-]*[ex+-]+(?<episode2>\\d+)))*[ _.\\-\\[\\]]*(?<title>(?![^\\\\].*?(?<!the)[ .(-]sample[ .)-]).*?)\\.(?<ext>[^.]*)$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline);
+                var match = Regex.Match(OriginalName, "^(?:.*\\\\)?(?<series>[^\\\\]+?)[ _.\\-\\[]+(?:[s]?(?<season>\\d+)[ _.\\-\\[\\]]*[ex](?<episode>\\d+)|(?:\\#|\\-\\s)(?<season>(?!(?:\\d{4}.\\d{2}.\\d{2}|\\d{2}.\\d{2}.\\d{4}))\\d+)\\.(?<episode>\\d+))(?:[ _.+-]+(?:[s]?\\k<season>[ _.\\-\\[\\]]*[ex](?<episode2>\\d+)|(?:\\#|\\-\\s)\\k<season>\\.(?<episode2>\\d+))|(?:[ _.+-]*[ex+-]+(?<episode2>\\d+)))*[ _.\\-\\[\\]]*(?<title>(?![^\\\\].*?(?<!the)[ .(-]sample[ .)-]).*?)\\.(?<ext>[^.]*)$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline);
                 int result1;
                 int.TryParse(match.Groups["season"].Value, out result1);
                 int result2;
