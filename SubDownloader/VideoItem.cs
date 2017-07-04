@@ -29,11 +29,13 @@ namespace SubDownloader
 
         public string ExtraInfo { get; private set; }
 
-        public bool IsTV { get; set; }
+        public bool IsTv { get; private set; }
 
         public string Format { get ; set; }
 
         public string Group { get; set; }
+
+        public string Resolution { get; set; }
 
         public VideoItem(string filename, string name = null)
         {
@@ -46,8 +48,8 @@ namespace SubDownloader
 
         private void ParseName()
         {
-            IsTV = Utils.GetType(OriginalName);
-            if (IsTV)
+            IsTv = Utils.GetType(OriginalName);
+            if (IsTv)
             {
                 var match = Regex.Match(OriginalName, "^(?:.*\\\\)?(?<series>[^\\\\]+?)[ _.\\-\\[]+(?:[s]?(?<season>\\d+)[ _.\\-\\[\\]]*[ex](?<episode>\\d+)|(?:\\#|\\-\\s)(?<season>(?!(?:\\d{4}.\\d{2}.\\d{2}|\\d{2}.\\d{2}.\\d{4}))\\d+)\\.(?<episode>\\d+))(?:[ _.+-]+(?:[s]?\\k<season>[ _.\\-\\[\\]]*[ex](?<episode2>\\d+)|(?:\\#|\\-\\s)\\k<season>\\.(?<episode2>\\d+))|(?:[ _.+-]*[ex+-]+(?<episode2>\\d+)))*[ _.\\-\\[\\]]*(?<title>(?![^\\\\].*?(?<!the)[ .(-]sample[ .)-]).*?)\\.(?<ext>[^.]*)$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline);
                 int result1;

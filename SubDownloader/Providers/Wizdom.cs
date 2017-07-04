@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace SubDownloader.Providers
 {
@@ -10,6 +11,8 @@ namespace SubDownloader.Providers
 
         public IEnumerable<SubtitleItem> GetSubtitles(VideoItem videoItem)
         {
+            var api = new ApiKeys();
+            //var html = Utils.GetHtml(new Uri("http://www.subscenter.info/he/subtitle/series/zoo/3/1/"));
             var se = "";
             var ep = "";
             var yearSize = 0;
@@ -33,11 +36,13 @@ namespace SubDownloader.Providers
             var tmpfile = file.Substring(size);
             tmpfile = tmpfile.StartsWith(".") ? tmpfile.Substring(1) : tmpfile;
             videoItem.Format = Utils.SercheMatch(tmpfile,Matches.FormatRegex);
-            var imdBid = Utils.GetImdbId(name, year, videoItem);
+            var imdBid = Utils.GetImdbId(name, year, videoItem, api);
             if (imdBid.Equals("")) yield break;
             Uri.TryCreate(new Uri("http://json.wizdom.xyz/") ,"[].json".Replace("[]", imdBid), out Uri uri);
-            var tFile = file.Substring(size + videoItem.Format.Length);
+            var index = file.LastIndexOf(videoItem.Format, StringComparison.Ordinal);
+            var tFile = file.Substring(index);
             tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
+            tFile = tFile.Replace(videoItem.Format, string.Empty);
             var id = Utils.GetId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
             if (id == "") yield break;
             if (Uri.TryCreate(new Uri("http://zip.wizdom.xyz/"),"[].zip".Replace("[]",id), out Uri url))

@@ -7,5 +7,6 @@ namespace SubDownloader.Providers
     string Name { get; }
 
     IEnumerable<SubtitleItem> GetSubtitles(VideoItem videoItem);
+
   }
 }

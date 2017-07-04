@@ -154,16 +154,13 @@ namespace SubDownloader
             var searchTerm = "release_group";
             videoitem.Group = SercheMatch(input ,Matches.GroupRegex);
             var searchBy = videoitem.Group;
+            videoitem.Resolution = SercheMatch(videoitem.Format, Matches.ResolutionList, true);
             if (videoitem.Group.Equals(""))
             {
                 var noGroup = MessageBox.Show($@"Can't Find Realse Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Realse Group Name",MessageBoxButtons.YesNo);
                 if (noGroup == DialogResult.No) return "";
-                foreach (Match match in Regex.Matches(videoitem.Format.ToLower(), Matches.FormatLIst.ToLower()))
-                {
-                    searchBy = match.Value;
-                    searchTerm = "format";
-                    break;
-                }
+                searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatLIst.ToLower(), true);
+                searchTerm = "format";
             }
             using (var webClient = new WebClient())
             {
@@ -172,32 +169,27 @@ namespace SubDownloader
                 if (json.Equals("")) return "";
                 var token = JToken.Parse(json);
                 var subsToken = token.SelectToken("subs");
-                var subs = videoitem.IsTV ? subsToken[s][e] : token.SelectToken("subs");
+                var subs = videoitem.IsTv ? subsToken[s][e] : token.SelectToken("subs");
                 foreach (var sub in subs)
                 {
                     var subTerm = sub[searchTerm].ToString().ToLower();
+                    var subResol = sub["resolution"]?.ToString().ToLower() ?? "";
                     if (sub[searchTerm] == null) continue;
-                    if (subTerm.Equals(searchBy))
-                        return sub["id"].ToString();
+                    if (subTerm.Equals(searchBy.ToLower()))
+                        if(subResol.Equals(videoitem.Resolution))
+                            return sub["id"].ToString();
                 }
             }
 
             return "";
         }
 
-
-        private const string CryptTextTvdb = "PImMrxx0MMjVFHdMN1NcdnFS4up3EAvNQVjb3axWKzTMMrLaL22uRw==";
-        private const string CryptTextTmdb = "4RqX+Sb+Qcp+tTgHbnYPAlirDXLFV4BPzzGa282upRN2Igmb4frbEnyCNB7Map96m4q/w+l7DalM6VAEJgambQ==";
-        internal static string GetImdbId(string name, int year, VideoItem videoItem)
+        internal static string GetImdbId(string name, int year, VideoItem videoItem, ApiKeys apiKeys)
         {
-            //<Decryption Key> is the part you need for it to work when you compile it yourself 
-            //for obvious reasons i didn't include my key 
-			var tvdBkey = CryptorEngine.Decrypt(CryptTextTvdb, true, "<Decryption_Key>");
-			var tvdBapikey = CryptorEngine.Decrypt(tvdBkey, true, "<Decryption_Key>");
-			var tmbDkey = CryptorEngine.Decrypt(CryptTextTmdb, true, "<Decryption_Key>");
-			var tmdBapikey = CryptorEngine.Decrypt(tmbDkey, true, "<Decryption_Key>");
+            var tvdBapikey = apiKeys.TvdBapikey;
+            var tmdBapikey = apiKeys.TmdBapikey;
 
-            if (videoItem.IsTV)
+            if (videoItem.IsTv)
             {
                 var tvdb = new TVDB(tvdBapikey);
                 var searchResults = tvdb.Search(name);
@@ -242,7 +234,7 @@ namespace SubDownloader
             return Convert.ToInt32(!m.Success ? "0" : m.Value);
         }
 
-        public static string SercheMatch(string input, string pattern)
+        public static string SercheMatch(string input, string pattern, bool first = false)
         {
             var tmp = @"";
             var index = new List<int>();
@@ -250,10 +242,11 @@ namespace SubDownloader
             {
                 tmp = match.Value;
                 index.Add(input.ToLower().IndexOf(tmp, StringComparison.Ordinal));
+                if (first) return tmp;
             }
             if (index.Count == 0) return "";
             var size = index[index.Count - 1] + tmp.Length + 1 - index[0];
-            if (size - input.Length <= 1) return input;
+            if (size - input.Length == 1 || size - input.Length == 0) return input;
                 return index.Count > 1 ? input.Substring(index[0], size) : tmp;
         }
 
