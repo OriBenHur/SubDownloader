@@ -9,44 +9,47 @@ using Ionic.Zip;
 using Newtonsoft.Json.Linq;
 using TMDbLib.Client;
 using TVDBSharp;
-using System.Configuration;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
+
 
 namespace SubDownloader
 
 {
     public static class Utils
     {
-        private static string GetHtml(Uri uri, out Uri responseUri)
-        {
-            string str = null;
-            responseUri = null;
-            WebRequest webRequest = WebRequest.Create(uri);
-            try
-            {
-                HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    responseUri = response.ResponseUri;
-                    var stream = response.GetResponseStream();
-                    if (stream != null)
-                        using (StreamReader streamReader = new StreamReader(stream))
-                            str = streamReader.ReadToEnd();
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-            return str;
-        }
+        #region Cooment
+        //private static string GetHtml(Uri uri, out Uri responseUri)
+        //{
+        //    string str = null;
+        //    responseUri = null;
+        //    WebRequest webRequest = WebRequest.Create(uri);
+        //    try
+        //    {
+        //        HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
+        //        if (response.StatusCode == HttpStatusCode.OK)
+        //        {
+        //            responseUri = response.ResponseUri;
+        //            var stream = response.GetResponseStream();
+        //            if (stream != null)
+        //                using (StreamReader streamReader = new StreamReader(stream))
+        //                    str = streamReader.ReadToEnd();
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        // ignored
+        //    }
+        //    return str;
+        //}
 
-        public static string GetHtml(Uri uri)
-        {
-            Uri responseUri;
-            return GetHtml(uri, out responseUri);
-        }
+        //public static string GetHtml(Uri uri)
+        //{
+        //    Uri responseUri;
+        //    return GetHtml(uri, out responseUri);
+        //}
+        #endregion
+
+        
 
         public static string DownloadFile(Uri uri)
         {
@@ -149,15 +152,38 @@ namespace SubDownloader
         }
 
 
-        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem )
+        
+        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem)
         {
+            #region Cooment
+            //Browser browser = new Browser();
+            //browser.Goto();
+            ////var respons = browser.RequestingSecureUrlRedirectsToLogOn();
+            ////var html = respons.GetElementByClassName("choose_subs");
+            ////var tmp = html.AsXml();
+
+
+            ////var doc = new HtmlDocument();
+            ////doc.LoadHtml(tmp);
+            ////var nodes = doc.DocumentNode.Descendants("choose_subs")
+            ////    .Select(y => y.Descendants()
+            ////        .Where(x => x.Attributes["class"].Value == "box"))
+            ////    .ToList();
+            ////var xml = html.AsXml();
+            ////xml = xml.Replace("\r\n", String.Empty);
+            ////xml = xml.Replace("/* he */", string.Empty);
+            ////xml = xml.Replace(" ", String.Empty);
+            ////XmlDocument xmlDoc = new XmlDocument();
+            ////xmlDoc.LoadXml(xml);
+            ////string jsonText = JsonConvert.SerializeXmlNode(xmlDoc);
+            #endregion
             var searchTerm = "release_group";
-            videoitem.Group = SercheMatch(input ,Matches.GroupRegex);
+            videoitem.Group = SercheMatch(input, Matches.GroupRegex);
             var searchBy = videoitem.Group;
             videoitem.Resolution = SercheMatch(videoitem.Format, Matches.ResolutionList, true);
             if (videoitem.Group.Equals(""))
             {
-                var noGroup = MessageBox.Show($@"Can't Find Realse Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Realse Group Name",MessageBoxButtons.YesNo);
+                var noGroup = MessageBox.Show($@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
                 if (noGroup == DialogResult.No) return "";
                 searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatLIst.ToLower(), true);
                 searchTerm = "format";
@@ -170,14 +196,15 @@ namespace SubDownloader
                 var token = JToken.Parse(json);
                 var subsToken = token.SelectToken("subs");
                 var subs = videoitem.IsTv ? subsToken[s][e] : token.SelectToken("subs");
+                if (subs == null) return "";
                 foreach (var sub in subs)
                 {
                     var subTerm = sub[searchTerm].ToString().ToLower();
                     var subResol = sub["resolution"]?.ToString().ToLower() ?? "";
                     if (sub[searchTerm] == null) continue;
-                    if (subTerm.Equals(searchBy.ToLower()))
-                        if(subResol.Equals(videoitem.Resolution))
-                            return sub["id"].ToString();
+                    if (!subTerm.Equals(searchBy.ToLower())) continue;
+                    if (subResol.Equals(videoitem.Resolution))
+                        return sub["id"].ToString();
                 }
             }
 
@@ -199,7 +226,7 @@ namespace SubDownloader
                     if (item.Name.ToLower().Equals(name)) return item.ImdbId;
                     if (year > 0)
                     {
-                        var tmpName = name.Replace(year.ToString(), String.Empty);
+                        var tmpName = name.Replace(year.ToString(), string.Empty);
                         tmpName = $@"{tmpName}({year})";
                         if (item.Name.ToLower().Equals(tmpName)) return item.ImdbId;
                     }
@@ -222,10 +249,10 @@ namespace SubDownloader
             return "";
         }
 
-        internal static string FixSeriesName(string name)
-        {
-            return string.Equals(name, null, StringComparison.Ordinal) ? null : name.Replace(" ", "-");
-        }
+        //internal static string FixSeriesName(string name)
+        //{
+        //    return string.Equals(name, null, StringComparison.Ordinal) ? null : name.Replace(" ", "-");
+        //}
 
         public static int GetYear(string file)
         {
@@ -238,16 +265,17 @@ namespace SubDownloader
         {
             var tmp = @"";
             var index = new List<int>();
-            foreach (Match match in Regex.Matches(input.ToLower(), pattern.ToLower()))
+            foreach (Match match in Regex.Matches(input.ToLower(), pattern.ToLower(),RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline))
             {
                 tmp = match.Value;
+
                 index.Add(input.ToLower().IndexOf(tmp, StringComparison.Ordinal));
                 if (first) return tmp;
             }
             if (index.Count == 0) return "";
             var size = index[index.Count - 1] + tmp.Length + 1 - index[0];
             if (size - input.Length == 1 || size - input.Length == 0) return input;
-                return index.Count > 1 ? input.Substring(index[0], size) : tmp;
+            return index.Count > 1 ? input.Substring(index[0], size) : tmp;
         }
 
     }

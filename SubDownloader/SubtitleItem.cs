@@ -4,10 +4,10 @@ namespace SubDownloader
 {
   public class SubtitleItem : VideoItem
   {
-    public Uri Url { get; private set; }
+    public Uri Url { get; }
 
     public SubtitleItem(string name, Uri url)
-      : base(AddExtension(name), null)
+      : base(AddExtension(name))
     {
       Url = url;
     }

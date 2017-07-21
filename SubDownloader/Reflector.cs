@@ -35,17 +35,15 @@ namespace SubDownloader
 		/// </summary>
 		/// <param name="an">A specific assembly name (used if the assembly name does not tie exactly with the namespace)</param>
 		/// <param name="ns">The namespace containing types to be used</param>
-		public Reflector(string an, string ns)
+		private Reflector(string an, string ns)
 		{
 			_mNs = ns;
 			_mAsmb = null;
 			foreach (var aN in Assembly.GetExecutingAssembly().GetReferencedAssemblies())
 			{
-				if (aN.FullName.StartsWith(an))
-				{
-					_mAsmb = Assembly.Load(aN);
-					break;
-				}
+			    if (!aN.FullName.StartsWith(an)) continue;
+			    _mAsmb = Assembly.Load(aN);
+			    break;
 			}
 		}
 
@@ -116,7 +114,7 @@ namespace SubDownloader
 		/// <param name="func">The function to execute</param>
 		/// <param name="parameters">The parameters to pass to function 'func'</param>
 		/// <returns>The result of the function invocation</returns>
-		public object Call2(object obj, string func, object[] parameters)
+		private object Call2(object obj, string func, object[] parameters)
 		{
 			return CallAs2(obj.GetType(), obj, func, parameters);
 		}
@@ -167,6 +165,7 @@ namespace SubDownloader
 		/// <returns>The property value</returns>
 		public object GetAs(Type type, object obj, string prop) {
 			var propInfo = type.GetProperty(prop, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+		    // ReSharper disable once PossibleNullReferenceException
 			return propInfo.GetValue(obj, null);
 		}
 

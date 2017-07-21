@@ -9,7 +9,7 @@ namespace SubDownloader
     [Serializable]
     public class Data
     {
-        private static string _savePath = Directory.GetCurrentDirectory() + "\\Data.sd";
+        private static readonly string SavePath = Directory.GetCurrentDirectory() + "\\Data.sd";
         private static Data _instance;
 
         public int MaxSimConnections { get; set; }
@@ -18,9 +18,9 @@ namespace SubDownloader
 
         public Dictionary<string, string> CustomNameTranslator { get; set; }
 
-        public List<string> FileNameFilters { get; set; }
+        public List<string> FileNameFilters { get; private set; }
 
-        public List<string> WatchedFolders { get; set; }
+        public List<string> WatchedFolders { get; private set; }
 
         public List<ISubtitleProvider> SubtitlesProviders => new List<ISubtitleProvider>
         {
@@ -28,15 +28,7 @@ namespace SubDownloader
 
         };
 
-        public static Data Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = Load();
-                return _instance;
-            }
-        }
+        public static Data Instance => _instance ?? (_instance = Load());
 
         private Data()
         {
@@ -62,53 +54,53 @@ namespace SubDownloader
         {
             try
             {
-                if (File.Exists(_savePath))
-                    File.Delete(_savePath);
+                if (File.Exists(SavePath))
+                    File.Delete(SavePath);
             }
             catch (Exception ex)
             {
-                string.Format("Cannot delete {0}, {1}", _savePath, ex.Message).AsErrorMessage("Serialization error");
+                $"Cannot delete {SavePath}, {ex.Message}".AsErrorMessage("Serialization error");
                 return;
             }
             try
             {
-                using (FileStream fileStream = File.OpenWrite(_savePath))
+                using (FileStream fileStream = File.OpenWrite(SavePath))
                     new BinaryFormatter().Serialize(fileStream, _instance);
             }
             catch (Exception ex)
             {
-                string.Format("Cannot write to {0}, {1}", _savePath, ex.Message).AsErrorMessage("Serialization error");
+                $"Cannot write to {SavePath}, {ex.Message}".AsErrorMessage("Serialization error");
             }
         }
 
         private static Data Load()
         {
-            if (!File.Exists(_savePath))
+            if (!File.Exists(SavePath))
                 return new Data();
             object obj = null;
             try
             {
-                using (FileStream fileStream = File.OpenRead(_savePath))
+                using (FileStream fileStream = File.OpenRead(SavePath))
                     obj = new BinaryFormatter().Deserialize(fileStream);
             }
             catch (Exception ex)
             {
-                string.Format("Cannot read {0}, {1}", _savePath, ex.Message).AsErrorMessage("Deserialization error");
+                $"Cannot read {SavePath}, {ex.Message}".AsErrorMessage("Deserialization error");
             }
             if ((obj == null ? 1 : (!(obj is Data) ? 1 : 0)) != 0)
             {
                 try
                 {
-                    File.Delete(_savePath);
+                    File.Delete(SavePath);
                 }
                 catch (Exception)
                 {
+                    //ignored
                 }
                 return new Data();
             }
             Data data = obj as Data;
-            if (data != null)
-                data.CheckData();
+            data?.CheckData();
             return data;
         }
     }

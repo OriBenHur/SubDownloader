@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Linq;
 using SubDownloader.Providers;
 
@@ -91,6 +90,8 @@ namespace SubDownloader
             InitializeNotify();
             _listBoxWatchedFolders.Items.Clear();
             _listBoxWatchedFolders.Items.AddRange(Data.Instance.WatchedFolders.ToArray());
+            //if (_timer.Enabled)
+            StopTimer();
             StartTimer();
         }
 
@@ -175,11 +176,11 @@ namespace SubDownloader
                 Log("Loading video items for " + folder);
                 List<VideoItem> videoItems = Utils.GetVideoItems(folder);
                 Log(videoItems.Count + " video items found for " + folder);
-                foreach (VideoItem videoItem1 in videoItems)
+                foreach (VideoItem videoItem1 in videoItems.Where<VideoItem>((Func<VideoItem, bool>)(v => !v.HaveSubtitles)))
                 {
                     VideoItem videoItem = videoItem1;
-                    if (!videoItem1.HaveSubtitles)
-                    {
+                    //if (!videoItem1.HaveSubtitles)
+                    //{
                         while (_activeConnections >= Data.Instance.MaxSimConnections)
                         {
                             Thread.Sleep(100);
@@ -233,9 +234,9 @@ namespace SubDownloader
                            --activeConnections[0];
                            --_activeConnections;
                        }, null);
-                    }
-                    else
-                        Log(videoItem.OriginalName + ": Already Have Subtitle", Color.Cyan);
+                    //}
+                    //else
+                    //    Log(videoItem.OriginalName + ": Already Have Subtitle", Color.Cyan);
                 }
                 while (activeConnections[0] > 0)
                 {
@@ -372,6 +373,7 @@ namespace SubDownloader
             if (appVersion.CompareTo(newVersion) < 0)
             {
                 //Debug.Assert(change != null, "change != null");
+                if (change == null) return;
                 change.Value = change.Value;
                 var result = MessageBox.Show(
                     $@"{appName.Replace('_', ' ')} v.{newVersion} is out!{Environment.NewLine}{change.Value}",

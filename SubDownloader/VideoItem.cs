@@ -1,31 +1,22 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace SubDownloader
 {
     public class VideoItem
     {
-        public string FileName { get; private set; }
+        public string FileName { get; }
 
-        public string OriginalName { get; private set; }
+        public string OriginalName { get; }
 
-        public bool HaveSubtitles
-        {
-            get
-            {
-                if (!File.Exists(Path.ChangeExtension(FileName, ".srt")))
-                    return File.Exists(Path.ChangeExtension(FileName, ".sub"));
-                return true;
-            }
-        }
+        public bool HaveSubtitles => File.Exists(Path.ChangeExtension(FileName, ".srt")) || File.Exists(Path.ChangeExtension(FileName, ".sub"));
 
         public string Name { get; private set; }
 
         public int Season { get; private set; }
 
         public int Episode { get; private set; }
-
-        private int Episode2 { get; set; }
 
         public string ExtraInfo { get; private set; }
 
@@ -52,17 +43,13 @@ namespace SubDownloader
             if (IsTv)
             {
                 var match = Regex.Match(OriginalName, "^(?:.*\\\\)?(?<series>[^\\\\]+?)[ _.\\-\\[]+(?:[s]?(?<season>\\d+)[ _.\\-\\[\\]]*[ex](?<episode>\\d+)|(?:\\#|\\-\\s)(?<season>(?!(?:\\d{4}.\\d{2}.\\d{2}|\\d{2}.\\d{2}.\\d{4}))\\d+)\\.(?<episode>\\d+))(?:[ _.+-]+(?:[s]?\\k<season>[ _.\\-\\[\\]]*[ex](?<episode2>\\d+)|(?:\\#|\\-\\s)\\k<season>\\.(?<episode2>\\d+))|(?:[ _.+-]*[ex+-]+(?<episode2>\\d+)))*[ _.\\-\\[\\]]*(?<title>(?![^\\\\].*?(?<!the)[ .(-]sample[ .)-]).*?)\\.(?<ext>[^.]*)$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline);
-                int result1;
-                int.TryParse(match.Groups["season"].Value, out result1);
-                int result2;
-                int.TryParse(match.Groups["episode"].Value, out result2);
-                int result3;
-                int.TryParse(match.Groups["episode2"].Value, out result3);
+                int.TryParse(match.Groups["season"].Value, out int result1);
+                int.TryParse(match.Groups["episode"].Value, out int result2);
+                //int.TryParse(match.Groups["episode2"].Value, out int result3);
                 Name = ApplyTranslators(match.Groups["series"].Value.CleanString().ToLower());
                 ExtraInfo = match.Groups["title"].Value.CleanString().ToLower();
                 Season = result1;
                 Episode = result2;
-                Episode2 = result3;
             }
             else
             {
@@ -77,11 +64,9 @@ namespace SubDownloader
 
         }
 
-        private string ApplyTranslators(string str)
+        private static string ApplyTranslators(string str)
         {
-            foreach (string key in Data.Instance.CustomNameTranslator.Keys)
-                str = str.Replace(key, Data.Instance.CustomNameTranslator[key]);
-            return str;
+            return Data.Instance.CustomNameTranslator.Keys.Aggregate(str, (current, key) => current.Replace(key, Data.Instance.CustomNameTranslator[key]));
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
@@ -9,21 +7,16 @@ namespace SubDownloader
 {
     public partial class ProgramSettings : Form
     {
-        private RegistryKey StartupKey => Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        private static RegistryKey StartupKey => Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-        private bool StartOnStartup
+        private static bool StartOnStartup
         {
             get
             {
-                object obj = StartupKey.GetValue("SubtitleDownloader");
-                if (obj == null)
-                    return false;
-                return bool.Parse((string)obj);
+                var obj = StartupKey.GetValue("SubtitleDownloader");
+                return obj != null && bool.Parse((string)obj);
             }
-            set
-            {
-                StartupKey.SetValue("SubtitleDownloader", value);
-            }
+            set => StartupKey.SetValue("SubtitleDownloader", value);
         }
 
         public ProgramSettings()
@@ -31,7 +24,7 @@ namespace SubDownloader
             InitializeComponent();
             btnRemoveTranslator.Enabled = false;
             _tempTranslators = Data.Instance.CustomNameTranslator;
-            foreach (string key in _tempTranslators.Keys)
+            foreach (var key in _tempTranslators.Keys)
                 lbTranslators.Items.Add(key + " = " + _tempTranslators[key]);
             numUpDownSimConnections.Value = Data.Instance.MaxSimConnections;
             numUpDownScanInterval.Value = Data.Instance.UpdateInterval;
@@ -71,11 +64,11 @@ namespace SubDownloader
 
         private void btnRemoveTranslator_Click(object sender, EventArgs e)
         {
-            int selectedIndex = lbTranslators.SelectedIndex;
+            var selectedIndex = lbTranslators.SelectedIndex;
             if (selectedIndex < 0)
                 return;
-            string[] strArray = ((string)lbTranslators.Items[selectedIndex]).Split('=');
-            string key = "";
+            var strArray = ((string)lbTranslators.Items[selectedIndex]).Split('=');
+            var key = "";
             if (strArray.Length == 2)
                 key = strArray[0].Trim();
             _tempTranslators.Remove(key);

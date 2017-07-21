@@ -67,10 +67,9 @@
             this._listBoxWatchedFolders.Location = new System.Drawing.Point(0, 25);
             this._listBoxWatchedFolders.Name = "_listBoxWatchedFolders";
             this._listBoxWatchedFolders.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
             this._listBoxWatchedFolders.Size = new System.Drawing.Size(927, 212);
             this._listBoxWatchedFolders.TabIndex = 3;
-            //this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
+            this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
             this._listBoxWatchedFolders.DragDrop += new System.Windows.Forms.DragEventHandler(this._listBoxWatchedFolders_DragDrop);
             this._listBoxWatchedFolders.DragEnter += new System.Windows.Forms.DragEventHandler(this._listBoxWatchedFolders_DragEnter);
             this._listBoxWatchedFolders.KeyDown += new System.Windows.Forms.KeyEventHandler(this._listBoxWatchedFolders_KeyDown);
@@ -191,9 +190,8 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 26);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             this.contextMenuStrip1.Text = "Open Folder Loction";
-            //this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // MainForm
             // 
