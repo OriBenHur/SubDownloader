@@ -65,7 +65,7 @@ namespace SubDownloader.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap tsBtnAddFolder_Image {
             get {
-                object obj = ResourceManager.GetObject("tsBtnAddFolder.Image", resourceCulture);
+                object obj = ResourceManager.GetObject("tsBtnAddFolder_Image", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
