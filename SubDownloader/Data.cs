@@ -22,6 +22,8 @@ namespace SubDownloader
 
         public List<string> WatchedFolders { get; private set; }
 
+        public bool AutoMode { get; set; } 
+
         public List<ISubtitleProvider> SubtitlesProviders => new List<ISubtitleProvider>
         {
             new Wizdom()

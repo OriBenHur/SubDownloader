@@ -45,6 +45,8 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.numUpDownSimConnections = new System.Windows.Forms.NumericUpDown();
+            this._lbAutoMode = new System.Windows.Forms.Label();
+            this._cbAutoMode = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownScanInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -63,31 +65,31 @@
             // numUpDownScanInterval
             // 
             this.numUpDownScanInterval.Increment = new decimal(new int[] {
-                5,
-                0,
-                0,
-                0});
+            5,
+            0,
+            0,
+            0});
             this.numUpDownScanInterval.Location = new System.Drawing.Point(223, 18);
             this.numUpDownScanInterval.Maximum = new decimal(new int[] {
-                1440,
-                0,
-                0,
-                0});
+            1440,
+            0,
+            0,
+            0});
             this.numUpDownScanInterval.Minimum = new decimal(new int[] {
-                5,
-                0,
-                0,
-                0});
+            5,
+            0,
+            0,
+            0});
             this.numUpDownScanInterval.Name = "numUpDownScanInterval";
             this.numUpDownScanInterval.ReadOnly = true;
             this.numUpDownScanInterval.Size = new System.Drawing.Size(36, 20);
             this.numUpDownScanInterval.TabIndex = 1;
             this.numUpDownScanInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.numUpDownScanInterval.Value = new decimal(new int[] {
-                15,
-                0,
-                0,
-                0});
+            15,
+            0,
+            0,
+            0});
             // 
             // chkBoxRunAtStartup
             // 
@@ -100,7 +102,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(167, 248);
+            this.btnSave.Location = new System.Drawing.Point(365, 282);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 3;
@@ -111,7 +113,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(86, 248);
+            this.btnCancel.Location = new System.Drawing.Point(284, 282);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 4;
@@ -137,7 +139,7 @@
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.txtTranslatorReplace);
             this.groupBox1.Controls.Add(this.lbTranslators);
-            this.groupBox1.Location = new System.Drawing.Point(12, 108);
+            this.groupBox1.Location = new System.Drawing.Point(12, 130);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(428, 134);
             this.groupBox1.TabIndex = 6;
@@ -198,6 +200,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this._cbAutoMode);
+            this.groupBox2.Controls.Add(this._lbAutoMode);
             this.groupBox2.Controls.Add(this.label5);
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.numUpDownSimConnections);
@@ -206,7 +210,7 @@
             this.groupBox2.Controls.Add(this.chkBoxRunAtStartup);
             this.groupBox2.Location = new System.Drawing.Point(12, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(428, 100);
+            this.groupBox2.Size = new System.Drawing.Size(428, 117);
             this.groupBox2.TabIndex = 7;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "General";
@@ -233,25 +237,43 @@
             // 
             this.numUpDownSimConnections.Location = new System.Drawing.Point(223, 43);
             this.numUpDownSimConnections.Maximum = new decimal(new int[] {
-                20,
-                0,
-                0,
-                0});
+            20,
+            0,
+            0,
+            0});
             this.numUpDownSimConnections.Minimum = new decimal(new int[] {
-                1,
-                0,
-                0,
-                0});
+            1,
+            0,
+            0,
+            0});
             this.numUpDownSimConnections.Name = "numUpDownSimConnections";
             this.numUpDownSimConnections.ReadOnly = true;
             this.numUpDownSimConnections.Size = new System.Drawing.Size(36, 20);
             this.numUpDownSimConnections.TabIndex = 4;
             this.numUpDownSimConnections.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.numUpDownSimConnections.Value = new decimal(new int[] {
-                1,
-                0,
-                0,
-                0});
+            1,
+            0,
+            0,
+            0});
+            // 
+            // _lbAutoMode
+            // 
+            this._lbAutoMode.AutoSize = true;
+            this._lbAutoMode.Location = new System.Drawing.Point(9, 91);
+            this._lbAutoMode.Name = "_lbAutoMode";
+            this._lbAutoMode.Size = new System.Drawing.Size(62, 13);
+            this._lbAutoMode.TabIndex = 6;
+            this._lbAutoMode.Text = "Auto Mode:";
+            // 
+            // _cbAutoMode
+            // 
+            this._cbAutoMode.AutoSize = true;
+            this._cbAutoMode.Location = new System.Drawing.Point(223, 90);
+            this._cbAutoMode.Name = "_cbAutoMode";
+            this._cbAutoMode.Size = new System.Drawing.Size(15, 14);
+            this._cbAutoMode.TabIndex = 7;
+            this._cbAutoMode.UseVisualStyleBackColor = true;
             // 
             // ProgramSettings
             // 
@@ -259,7 +281,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(453, 283);
+            this.ClientSize = new System.Drawing.Size(453, 312);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
@@ -296,5 +318,8 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.NumericUpDown numUpDownSimConnections;
         #endregion
+
+        private System.Windows.Forms.CheckBox _cbAutoMode;
+        private System.Windows.Forms.Label _lbAutoMode;
     }
 }

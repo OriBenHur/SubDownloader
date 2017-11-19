@@ -9,12 +9,12 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using SubDownloader.Providers;
+using System.Net;
 
 namespace SubDownloader
 {
     public partial class MainForm : Form
     {
-
 
         private string[] SelectedFolders => (from object item in _listBoxWatchedFolders.SelectedItems
                                              select item.ToString()).ToArray();
@@ -104,23 +104,10 @@ namespace SubDownloader
                     return;
                 _lastWindowState = WindowState;
             };
-            //FormClosing += (s, e) =>
+            //Resize += (s, e) =>
             //{
-            //    var msg = MessageBox.Show(@"For Close Click Yes" + Environment.NewLine + "For Minimize Click No", "Close?", MessageBoxButtons.YesNo);
-            //    if (msg == DialogResult.No)
-            //    {
-            //        Exit();
-            //    }
-            //    else
-            //    {
-            //        Hide();
-            //        e.Cancel = true;
-            //    }
+            //    Hide();
             //};
-            Resize += (s, e) =>
-            {
-                Hide();
-            };
             _ntfyIcon.MouseDoubleClick += (s, e) =>
             {
                 Show();
@@ -151,7 +138,10 @@ namespace SubDownloader
             foreach (string str in _listBoxWatchedFolders.Items)
             {
                 ++activeDownloaders[0];
-                action.BeginInvoke(str, iar => --activeDownloaders[0], null);
+
+                void Callback(IAsyncResult iar) => --activeDownloaders[0];
+
+                action.BeginInvoke(str, Callback, null);
             }
             ((Action)(() =>
            {
@@ -251,6 +241,24 @@ namespace SubDownloader
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            var url = "https://oribenhur.github.io/Matches";
+            var client = new WebClient();
+            var Values = new string[4];
+            var i = 0;
+            using (var stream = client.OpenRead(url))
+            using (var reader = new StreamReader(stream))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Values[i] = line;
+                    i++;
+                }
+            }
+            Matches.GroupRegex = $@"\b({Values[0]})\b";
+            Matches.FormatRegex = $@"\b({Values[1]})\b";
+            Matches.FormatList = Values[2];
+            Matches.ResolutionList = Values[3];
             if (_initialized) return;
             _initialized = true;
             Log("Program loaded, initializing UI...");
@@ -399,14 +407,8 @@ namespace SubDownloader
             {
                 NewVersion(true);
             }
-
             var thread = new Thread(Action) { IsBackground = true };
             thread.Start();
-        }
-
-        private void Form1_Resize(object sender, EventArgs e)
-        {
-
         }
 
         private void _listBoxWatchedFolders_KeyDown(object sender, KeyEventArgs e)
@@ -448,12 +450,43 @@ namespace SubDownloader
         }
         private void _listBoxWatchedFolders_MouseUp(object sender, MouseEventArgs e)
         {
-            ContextMenu menu = new ContextMenu();
-            MenuItem menuItem = new MenuItem("Open Folder");
-            menuItem.Click += Open;
-            menu.MenuItems.Add(menuItem);
-            _listBoxWatchedFolders.ContextMenu = menu;
+            switch (e.Button)
+            {
+                case MouseButtons.Right:
+                    var rowIndex = GetRowIndex(e.Location);
+                    if (rowIndex == -1)
+                        break;
+                    _listBoxWatchedFolders.ClearSelected();
+                    _listBoxWatchedFolders.SelectedIndex = rowIndex;
+                    _cmListBox.Show(this, new Point(e.X + 5, e.Y + 35));
+                    break;
+                case MouseButtons.Left:
+                    break;
+                case MouseButtons.None:
+                    break;
+                case MouseButtons.Middle:
+                    break;
+                case MouseButtons.XButton1:
+                    break;
+                case MouseButtons.XButton2:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
+        }
+
+        private int GetRowIndex(Point p)
+        {
+            for (var i = 0; i < _listBoxWatchedFolders.Items.Count; i++)
+            {
+                var r1 = _listBoxWatchedFolders.GetItemRectangle(i);
+                var r = new Rectangle(0, r1.Top, _listBoxWatchedFolders.Width, r1.Height);
+                if (!r.Contains(p)) continue;
+                _listBoxWatchedFolders.Focus();
+                return i;
+            }
+            return -1;
         }
     }
 

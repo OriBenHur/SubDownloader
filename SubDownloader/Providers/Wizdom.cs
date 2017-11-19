@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace SubDownloader.Providers
 {
@@ -23,7 +24,7 @@ namespace SubDownloader.Providers
             if (episode > 0)
                 ep = episode < 10 ? "e0" + episode : "e" + episode;
 
-            var file = Path.GetFileNameWithoutExtension(videoItem.FileName);
+            var file = VideoItem.ApplyTranslators(Path.GetFileNameWithoutExtension(videoItem.FileName));
             if (file == null) yield break;
             var year = Utils.GetYear(file);
 
@@ -39,10 +40,11 @@ namespace SubDownloader.Providers
             if (imdBid.Equals("")) yield break;
             Uri.TryCreate(new Uri("http://json.wizdom.xyz/"), "[].json".Replace("[]", imdBid), out Uri uri);
 
-            var index = file.LastIndexOf(videoItem.Format, StringComparison.Ordinal);
+            var index = file.LastIndexOf(videoItem.Format, StringComparison.OrdinalIgnoreCase);
             var tFile = file.Substring(index);
             tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
-            tFile = tFile.Replace(videoItem.Format, string.Empty);
+            tFile = Regex.Replace(tFile, videoItem.Format, string.Empty, RegexOptions.IgnoreCase);
+            tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
             var id = Utils.GetId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
             if (id == "") yield break;
             if (Uri.TryCreate(new Uri("http://zip.wizdom.xyz/"), "[].zip".Replace("[]", id), out Uri url))

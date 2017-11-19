@@ -29,11 +29,14 @@ namespace SubDownloader
             numUpDownSimConnections.Value = Data.Instance.MaxSimConnections;
             numUpDownScanInterval.Value = Data.Instance.UpdateInterval;
             chkBoxRunAtStartup.Checked = StartOnStartup;
+            _cbAutoMode.Checked = Data.Instance.AutoMode;
+
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
             StartOnStartup = chkBoxRunAtStartup.Checked;
+            Data.Instance.AutoMode = _cbAutoMode.Checked;
             Data.Instance.UpdateInterval = (int)numUpDownScanInterval.Value;
             Data.Instance.MaxSimConnections = (int)numUpDownSimConnections.Value;
             Data.Instance.CustomNameTranslator = _tempTranslators;

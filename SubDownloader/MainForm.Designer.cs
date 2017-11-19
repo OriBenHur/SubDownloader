@@ -44,8 +44,11 @@
             this._cheackForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this._ntfyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this._cmListBox = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this._tsmOpenFolder = new System.Windows.Forms.ToolStripMenuItem();
             this._panelMain.SuspendLayout();
             this._toolStripWatchedFolders.SuspendLayout();
+            this._cmListBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // _panelMain
@@ -56,7 +59,7 @@
             this._panelMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this._panelMain.Location = new System.Drawing.Point(0, 0);
             this._panelMain.Name = "_panelMain";
-            this._panelMain.Size = new System.Drawing.Size(927, 438);
+            this._panelMain.Size = new System.Drawing.Size(927, 386);
             this._panelMain.TabIndex = 0;
             // 
             // _listBoxWatchedFolders
@@ -67,7 +70,7 @@
             this._listBoxWatchedFolders.Location = new System.Drawing.Point(0, 25);
             this._listBoxWatchedFolders.Name = "_listBoxWatchedFolders";
             this._listBoxWatchedFolders.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this._listBoxWatchedFolders.Size = new System.Drawing.Size(927, 212);
+            this._listBoxWatchedFolders.Size = new System.Drawing.Size(927, 160);
             this._listBoxWatchedFolders.TabIndex = 3;
             this._listBoxWatchedFolders.SelectedIndexChanged += new System.EventHandler(this.listBoxWatchedFolders_SelectedIndexChanged);
             this._listBoxWatchedFolders.DragDrop += new System.Windows.Forms.DragEventHandler(this._listBoxWatchedFolders_DragDrop);
@@ -84,7 +87,7 @@
             this._rtbLog.Dock = System.Windows.Forms.DockStyle.Bottom;
             this._rtbLog.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._rtbLog.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-            this._rtbLog.Location = new System.Drawing.Point(0, 237);
+            this._rtbLog.Location = new System.Drawing.Point(0, 185);
             this._rtbLog.Name = "_rtbLog";
             this._rtbLog.ReadOnly = true;
             this._rtbLog.ShortcutsEnabled = false;
@@ -193,22 +196,36 @@
             this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             this.contextMenuStrip1.Text = "Open Folder Loction";
             // 
+            // _cmListBox
+            // 
+            this._cmListBox.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this._tsmOpenFolder});
+            this._cmListBox.Name = "_cmListBox";
+            this._cmListBox.Size = new System.Drawing.Size(153, 48);
+            // 
+            // _tsmOpenFolder
+            // 
+            this._tsmOpenFolder.Name = "_tsmOpenFolder";
+            this._tsmOpenFolder.Size = new System.Drawing.Size(152, 22);
+            this._tsmOpenFolder.Text = "Open Folder";
+            this._tsmOpenFolder.Click += new System.EventHandler(this.Open);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(927, 438);
+            this.ClientSize = new System.Drawing.Size(927, 386);
             this.Controls.Add(this._panelMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "Subtitle Downloader";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
-            this.Resize += new System.EventHandler(this.Form1_Resize);
             this._panelMain.ResumeLayout(false);
             this._panelMain.PerformLayout();
             this._toolStripWatchedFolders.ResumeLayout(false);
             this._toolStripWatchedFolders.PerformLayout();
+            this._cmListBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -232,5 +249,7 @@
         #endregion
 
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ContextMenuStrip _cmListBox;
+        private System.Windows.Forms.ToolStripMenuItem _tsmOpenFolder;
     }
 }

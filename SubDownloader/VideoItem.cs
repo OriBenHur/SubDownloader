@@ -22,7 +22,7 @@ namespace SubDownloader
 
         public bool IsTv { get; private set; }
 
-        public string Format { get ; set; }
+        public string Format { get; set; }
 
         public string Group { get; set; }
 
@@ -57,16 +57,16 @@ namespace SubDownloader
                 var tmpRegex = new Regex("(19|20)[0-9][0-9].*");
                 var filename = tmpRegex.Replace(OriginalName, string.Empty);
                 filename = filename.EndsWith(".") ? filename.Substring(0, filename.Length - 1) : filename;
-                ExtraInfo = OriginalName.Replace(filename+".", string.Empty);
+                ExtraInfo = OriginalName.Replace(filename + ".", string.Empty);
 
-                Name = ApplyTranslators(filename.CleanString().ToLower()); 
+                Name = ApplyTranslators(filename.CleanString().ToLower());
             }
 
         }
 
-        private static string ApplyTranslators(string str)
+        public static string ApplyTranslators(string str)
         {
-            return Data.Instance.CustomNameTranslator.Keys.Aggregate(str, (current, key) => current.Replace(key, Data.Instance.CustomNameTranslator[key]));
+            return Data.Instance.CustomNameTranslator.Keys.Aggregate(str, (current, key) => Regex.Replace(current, key, Data.Instance.CustomNameTranslator[key], RegexOptions.IgnoreCase));
         }
     }
 }

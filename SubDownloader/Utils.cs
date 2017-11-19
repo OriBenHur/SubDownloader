@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using TMDbLib.Client;
 using TVDBSharp;
 using System.Windows.Forms;
+using TMDbLib.Objects.TvShows;
 
 
 namespace SubDownloader
@@ -183,9 +184,10 @@ namespace SubDownloader
             videoitem.Resolution = SercheMatch(videoitem.Format, Matches.ResolutionList, true);
             if (videoitem.Group.Equals(""))
             {
-                var noGroup = MessageBox.Show($@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
+                var noGroup = Data.Instance.AutoMode ? DialogResult.OK : MessageBox.Show($@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
                 if (noGroup == DialogResult.No) return "";
-                searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatLIst.ToLower(), true);
+                searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatList.ToLower(), true);
+                searchBy = searchBy.Equals("WEB".ToLower()) ? "WEB-DL" : searchBy;
                 searchTerm = "format";
             }
             using (var webClient = new WebClient())
@@ -199,16 +201,36 @@ namespace SubDownloader
                 if (subs == null) return "";
                 foreach (var sub in subs)
                 {
-                    var subTerm = sub[searchTerm].ToString().ToLower();
-                    var subResol = sub["resolution"]?.ToString().ToLower() ?? "";
+                    if(sub[searchTerm] == null) continue;
+                    var subTerm = sub[searchTerm]?.ToString().ToLower();
+                    //var subResol = sub["resolution"]?.ToString().ToLower() ?? "";
                     if (sub[searchTerm] == null) continue;
                     if (!subTerm.Equals(searchBy.ToLower())) continue;
-                    if (subResol.Equals(videoitem.Resolution))
+                    //if (!subResol.Equals(videoitem.Resolution)) continue;
+                    if (Extract(DownloadFile(new Uri(@"http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString())))) != null)
                         return sub["id"].ToString();
                 }
             }
 
             return "";
+        }
+
+        private static bool HealthCheck(string url)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Timeout = 5000;
+            request.Method = "HEAD";
+            try
+            {
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    return response.StatusCode == HttpStatusCode.OK;
+                }
+            }
+            catch (WebException)
+            {
+                return false;
+            }
         }
 
         internal static string GetImdbId(string name, int year, VideoItem videoItem, ApiKeys apiKeys)
@@ -218,17 +240,30 @@ namespace SubDownloader
 
             if (videoItem.IsTv)
             {
-                var tvdb = new TVDB(tvdBapikey);
-                var searchResults = tvdb.Search(name);
-
-                foreach (var item in searchResults)
+                if(HealthCheck("http://thetvdb.com"))
                 {
-                    if (item.Name.ToLower().Equals(name)) return item.ImdbId;
-                    if (year > 0)
+                    var tvdb = new TVDB(tvdBapikey);
+                    var searchResults = tvdb.Search(name);
+                    foreach (var item in searchResults)
                     {
+                        if (item.Name.ToLower().Equals(name.ToLower())) return item.ImdbId;
+                        if (year <= 0) continue;
                         var tmpName = name.Replace(year.ToString(), string.Empty);
                         tmpName = $@"{tmpName}({year})";
                         if (item.Name.ToLower().Equals(tmpName)) return item.ImdbId;
+                    }
+                }
+
+                else
+                {
+                    var tmdb = new TMDbClient(tmdBapikey);
+                    var searchResults = tmdb.SearchTvShowAsync(name).Result;
+                    foreach (var item in searchResults.Results)
+                    {
+                        if (item.Name.ToLower().Equals(name.ToLower()))
+                        {
+                            return tmdb.GetTvShowAsync(item.Id, TvShowMethods.ExternalIds).Result.ExternalIds.ImdbId;
+                        }
                     }
                 }
             }
