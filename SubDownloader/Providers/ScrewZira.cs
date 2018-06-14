@@ -37,7 +37,7 @@ namespace SubDownloader.Providers
             var tmpfile = file.Substring(size);
             tmpfile = tmpfile.StartsWith(".") ? tmpfile.Substring(1) : tmpfile;
             videoItem.Format = Utils.SercheMatch(tmpfile, Matches.FormatRegex);
-
+            videoItem.Group = Utils.SercheMatch(tmpfile, Matches.GroupRegex);
             var imdBid = Utils.GetImdbId(name, year, videoItem, api);
             if (imdBid.Equals("")) yield break;
             //var json = isTv ? Utils.SzGetTv(imdBid, episode, season, year) : Utils.SzGetMovie(imdBid, year);

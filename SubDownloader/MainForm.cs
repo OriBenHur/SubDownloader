@@ -66,12 +66,12 @@ namespace SubDownloader
 
         private List<SubtitleItem> GetSubtitles(VideoItem videoItem, ISubtitleProvider provider)
         {
-            List<SubtitleItem> subtitleItemList = new List<SubtitleItem>();
-            foreach (SubtitleItem subtitle in provider.GetSubtitles(videoItem))
+            var subtitleItemList = new List<SubtitleItem>();
+            foreach (var subtitle in provider.GetSubtitles(videoItem))
             {
                 if (subtitle != null)
                 {
-                    double similarityIndex = Utils.GetSimilarityIndex(subtitle.ExtraInfo, videoItem.ExtraInfo);
+                    var similarityIndex = Utils.GetSimilarityIndex(subtitle.ExtraInfo, videoItem.ExtraInfo);
                     if (Math.Abs(similarityIndex - 100.0) > -100)
                     {
                         subtitleItemList.Clear();
@@ -122,7 +122,7 @@ namespace SubDownloader
                Application.DoEvents();
                _isDoubleClick = false;
            });
-            ContextMenu contextMenu = new ContextMenu();
+            var contextMenu = new ContextMenu();
             contextMenu.MenuItems.Add("Exit", (s, e) => Exit());
             _ntfyIcon.ContextMenu = contextMenu;
         }
@@ -164,11 +164,11 @@ namespace SubDownloader
             {
                 int[] activeConnections = { 0 };
                 Log("Loading video items for " + folder);
-                List<VideoItem> videoItems = Utils.GetVideoItems(folder);
+                var videoItems = Utils.GetVideoItems(folder);
                 Log(videoItems.Count + " video items found for " + folder);
-                foreach (VideoItem videoItem1 in videoItems.Where<VideoItem>((Func<VideoItem, bool>)(v => !v.HaveSubtitles)))
+                foreach (var videoItem1 in videoItems.Where<VideoItem>((Func<VideoItem, bool>)(v => !v.HaveSubtitles)))
                 {
-                    VideoItem videoItem = videoItem1;
+                    var videoItem = videoItem1;
                     //if (!videoItem1.HaveSubtitles)
                     //{
                     while (_activeConnections >= Data.Instance.MaxSimConnections)
@@ -180,10 +180,10 @@ namespace SubDownloader
                     ++_activeConnections;
                     ((Action)(() =>
                    {
-                       foreach (ISubtitleProvider subtitlesProvider in Data.Instance.SubtitlesProviders)
+                       foreach (var subtitlesProvider in Data.Instance.SubtitlesProviders)
                        {
                            Log("Processing " + videoItem.OriginalName + ", provider: " + subtitlesProvider.Name);
-                           List<SubtitleItem> subtitles = GetSubtitles(videoItem, subtitlesProvider);
+                           var subtitles = GetSubtitles(videoItem, subtitlesProvider);
                            if (subtitles.Count > 0)
                            {
                                Log(videoItem.OriginalName + ": Downloading subtitles.");
@@ -258,7 +258,7 @@ namespace SubDownloader
 
             Matches.GroupRegex = $@"\b({values[0]})\b";
             Matches.FormatRegex = $@"\b({values[1]})\b";
-            Matches.FormatList = values[2];
+            Matches.FormatList = $@"\b({values[2]})\b";
             Matches.ResolutionList = values[3];
             if (_initialized) return;
             _initialized = true;
@@ -275,7 +275,7 @@ namespace SubDownloader
 
         private void _tsBtnAddFolder_Click(object sender, EventArgs e)
         {
-            string str = Utils.BrowseForFolder();
+            var str = Utils.BrowseForFolder();
             if (str == null || Data.Instance.WatchedFolders.Contains(str))
                 return;
             Data.Instance.WatchedFolders.Add(str);
@@ -321,12 +321,12 @@ namespace SubDownloader
 
         private void _listBoxWatchedFolders_DragDrop(object sender, DragEventArgs e)
         {
-            string[] s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            var s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             int i;
             for (i = 0; i < s.Length; i++)
             {
                 _listBoxWatchedFolders.Items.Add(s[i]);
-                string str = s[i];
+                var str = s[i];
                 if (str != null && !Data.Instance.WatchedFolders.Contains(str))
                     Data.Instance.WatchedFolders.Add(str);
             }
@@ -340,8 +340,7 @@ namespace SubDownloader
             XElement change = null;
             Version newVersion = null;
             //object doc2 = null;
-            var xmlUrl =
-                @"https://onedrive.live.com/download?cid=D9DE3B3ACC374428&resid=D9DE3B3ACC374428%217999&authkey=ADJwQu1VOTfAOVg";
+            const string xmlUrl = @"https://onedrive.live.com/download?cid=D9DE3B3ACC374428&resid=D9DE3B3ACC374428%217999&authkey=ADJwQu1VOTfAOVg";
             var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
             var appName = Assembly.GetExecutingAssembly().GetName().Name;
             var doc = new XDocument();
@@ -353,7 +352,7 @@ namespace SubDownloader
             }
             catch (Exception e)
             {
-                using (StreamWriter file =
+                using (var file =
                     new StreamWriter(@"ErrorLog.txt", true))
                 {
                     file.WriteLine(
@@ -416,7 +415,7 @@ namespace SubDownloader
         {
             if (e.KeyCode == Keys.A && e.Control)
             {
-                for (int val = 0; val < _listBoxWatchedFolders.Items.Count; val++)
+                for (var val = 0; val < _listBoxWatchedFolders.Items.Count; val++)
                 {
                     _listBoxWatchedFolders.SetSelected(val, true);
                 }
@@ -430,8 +429,8 @@ namespace SubDownloader
         private void _rtbLog_MouseUp(object sender, MouseEventArgs e)
         {
 
-            ContextMenu contextMenu = new ContextMenu();
-            MenuItem menuItem = new MenuItem("Clear Log");
+            var contextMenu = new ContextMenu();
+            var menuItem = new MenuItem("Clear Log");
             menuItem.Click += Clear;
             contextMenu.MenuItems.Add(menuItem);
             _rtbLog.ContextMenu = contextMenu;

@@ -21,12 +21,12 @@ namespace SubDownloader
 
     public static void AsErrorMessage(this string msg, string caption = "Error")
     {
-      int num = (int) MessageBox.Show(msg, caption, MessageBoxButtons.OK, MessageBoxIcon.Hand);
+      var num = (int) MessageBox.Show(msg, caption, MessageBoxButtons.OK, MessageBoxIcon.Hand);
     }
 
     public static void AsInfoMessage(this string msg, string caption = "Info")
     {
-      int num = (int) MessageBox.Show(msg, caption, MessageBoxButtons.OK, MessageBoxIcon.Hand);
+      var num = (int) MessageBox.Show(msg, caption, MessageBoxButtons.OK, MessageBoxIcon.Hand);
     }
 
     public static string CleanString(this string str)

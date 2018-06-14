@@ -26,9 +26,9 @@ namespace SubDownloader
 
         public List<ISubtitleProvider> SubtitlesProviders => new List<ISubtitleProvider>
         {
-            //new Wizdom(),
-            new ScrewZira(),
-            new Wizdom()
+            new Wizdom(),
+            new ScrewZira()
+            //new Wizdom()
             //new ScrewZira()
 
         };
@@ -69,7 +69,7 @@ namespace SubDownloader
             }
             try
             {
-                using (FileStream fileStream = File.OpenWrite(SavePath))
+                using (var fileStream = File.OpenWrite(SavePath))
                     new BinaryFormatter().Serialize(fileStream, _instance);
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace SubDownloader
             object obj = null;
             try
             {
-                using (FileStream fileStream = File.OpenRead(SavePath))
+                using (var fileStream = File.OpenRead(SavePath))
                     obj = new BinaryFormatter().Deserialize(fileStream);
             }
             catch (Exception ex)
@@ -104,7 +104,7 @@ namespace SubDownloader
                 }
                 return new Data();
             }
-            Data data = obj as Data;
+            var data = obj as Data;
             data?.CheckData();
             return data;
         }

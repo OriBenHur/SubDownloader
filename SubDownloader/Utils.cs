@@ -56,7 +56,7 @@ namespace SubDownloader
 
         public static string DownloadSz(string id)
         {
-            JObject json = new JObject();
+            var json = new JObject();
             var requestJson = new JObject
             {
                 {"subtitleID", id}
@@ -66,10 +66,10 @@ namespace SubDownloader
             var request = new RestRequest { Method = Method.POST };
             request.AddHeader("Accept", "application/json");
             request.AddHeader("Content-Type", "application/json");
-            request.AddHeader("Accept-Encoding", "UTF-8");   
+            request.AddHeader("Accept-Encoding", "UTF-8");
             request.Parameters.Clear();
             request.AddParameter("application/json", json.ToString(), ParameterType.RequestBody);
-            var tempFileName = Path.GetTempFileName().Replace("tmp","srt");
+            var tempFileName = Path.GetTempFileName().Replace("tmp", "srt");
             var response = client.Execute(request);
             response.ContentType = "application/force-download";
             if (response.Headers[2].Value.Equals("0")) return null;
@@ -85,8 +85,15 @@ namespace SubDownloader
             {
                 var tempFileName = Path.GetTempFileName();
                 using (var webClient = new WebClient())
-                    webClient.DownloadFile(uri, tempFileName);
-                str = tempFileName;
+                {
+                    webClient.OpenRead(uri);
+                    if (Convert.ToInt64(webClient.ResponseHeaders["Content-Length"]) > 0)
+                    {
+                        webClient.DownloadFile(uri, tempFileName);
+                        str = tempFileName;
+                    }
+                }
+                
             }
             catch
             {
@@ -99,32 +106,28 @@ namespace SubDownloader
         public static string Extract(string file, bool deleteOriginal = true)
         {
             string str = null;
-            if (file != null)
+            if (file == null) return null;
+            if (!ZipFile.IsZipFile(file, false)) return null;
+            try
             {
-                if (ZipFile.IsZipFile(file, false))
+                var tempPath = Path.GetTempPath();
+                var zipFile = ZipFile.Read(file);
+                if (zipFile.Entries.Count > 0)
                 {
-                    try
-                    {
-                        string tempPath = Path.GetTempPath();
-                        ZipFile zipFile = ZipFile.Read(file);
-                        if (zipFile.Entries.Count > 0)
-                        {
-                            ZipEntry zipEntry = zipFile[0];
-                            zipEntry.Extract(tempPath, ExtractExistingFileAction.OverwriteSilently);
-                            str = Path.Combine(tempPath, zipEntry.FileName);
-                        }
-
-                        if (deleteOriginal)
-                        {
-                            zipFile.Dispose();
-                            File.Delete(file);
-                        }
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
+                    var zipEntry = zipFile[0];
+                    zipEntry.Extract(tempPath, ExtractExistingFileAction.OverwriteSilently);
+                    str = Path.Combine(tempPath, zipEntry.FileName);
                 }
+
+                if (deleteOriginal)
+                {
+                    zipFile.Dispose();
+                    File.Delete(file);
+                }
+            }
+            catch
+            {
+                // ignored
             }
 
             return str;
@@ -216,7 +219,7 @@ namespace SubDownloader
             var searchTerm = "release_group";
             videoitem.Group = SercheMatch(input, Matches.GroupRegex);
             var searchBy = videoitem.Group;
-            videoitem.Resolution = SercheMatch(videoitem.Format, Matches.ResolutionList, true);
+            //SercheMatch(videoitem.Format, Matches.ResolutionList, true);
             if (videoitem.Group.Equals(""))
             {
                 var noGroup = Data.Instance.AutoMode
@@ -245,19 +248,8 @@ namespace SubDownloader
                     var subTerm = sub[searchTerm]?.ToString().ToLower();
                     if (sub[searchTerm] == null) continue;
                     if (!subTerm.Equals(searchBy.ToLower())) continue;
-                    var url = "http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString());
-                    //var url = "http://zip.wizdom.xyz/[].zip".Replace("[]", "23124124324235235345344");
-                    using (var client = new WebClient())
-                    {
-                        client.OpenRead(url);
-                        if(Convert.ToInt64(client.ResponseHeaders["Content-Length"]) > 0 )
-                            return sub["id"].ToString();
-                    }
-                    
-                    
-                    //if (Extract(DownloadFile(
-                    //        new Uri(@"http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString())))) != null)
-                           
+                    return sub["id"].ToString();
+
                 }
             }
 
@@ -284,10 +276,10 @@ namespace SubDownloader
 
         internal static string GetImdbId(string name, int year, VideoItem videoItem, ApiKeys apiKeys)
         {
-			
-			var tvdBapikey = apiKeys.TvdBapikey; //if you are using the source code replace this to your TvdB api key
-            var tmdBapikey = apiKeys.TmdBapikey; //if you are using the source code replace this to your TmdB api key
- 
+
+            var tvdBapikey = apiKeys.TvdBapikey;
+            var tmdBapikey = apiKeys.TmdBapikey;
+
             if (videoItem.IsTv)
             {
                 if (HealthCheck("http://thetvdb.com"))
@@ -355,7 +347,7 @@ namespace SubDownloader
             }
 
             if (index.Count == 0) return "";
-            var size = index[index.Count - 1] + tmp.Length + 1 - index[0];
+            var size = index[index.Count - 1] + tmp.Length - index[0];
             if (size - input.Length == 1 || size - input.Length == 0) return input;
             return index.Count > 1 ? input.Substring(index[0], size) : tmp;
         }
@@ -373,7 +365,7 @@ namespace SubDownloader
         /// <returns></returns>
         public static string SzGetTv(string searchPhrase, int episode, int season, int year = 0, string searchType = "ImdbID", string version = "1.0")
         {
-            JObject json = new JObject();
+            var json = new JObject();
             var requestJson = new JObject
             {
                 {"SearchPhrase", searchPhrase},
@@ -391,7 +383,7 @@ namespace SubDownloader
             request.Parameters.Clear();
             request.AddParameter("application/json", json.ToString(), ParameterType.RequestBody);
             var response = client.Execute(request);
-            var deserializeObjectJson = (string) JsonConvert.DeserializeObject(response.Content);
+            var deserializeObjectJson = (string)JsonConvert.DeserializeObject(response.Content);
             var token = JObject.Parse(deserializeObjectJson);
             var results = token.SelectToken("Results");
             return results.HasValues ? deserializeObjectJson : null;
@@ -431,22 +423,40 @@ namespace SubDownloader
         }
 
 
-        public static string[] GetSZid(VideoItem videoItem, string json)
+        public static string[] GetSZid(VideoItem videoitem, string json)
         {
             try
             {
+                var emptyGroup = false;
+                var searchBy = videoitem.Group;
                 var token = JObject.Parse(json);
                 var subs = token.SelectToken("Results");
+                if (videoitem.Group.Equals(""))
+                {
+                    var noGroup = Data.Instance.AutoMode
+                        ? DialogResult.OK
+                        : MessageBox.Show(
+                            $@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?",
+                            @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
+                    if (noGroup == DialogResult.No) return null;
+                    searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatList.ToLower(), true);
+                    searchBy = searchBy.Equals("WEB".ToLower()) ? "WEB-DL" : searchBy;
+                    emptyGroup = true;
+                }
+
                 return (from sub in subs
-                    where videoItem.FileName != null &&
-                          Path.GetFileName(videoItem.FileName).Contains(sub["SubtitleName"].ToString())
+                    let subSearchBy =
+                        (emptyGroup
+                            ? SercheMatch(sub["SubtitleName"].ToString(), Matches.FormatList.ToLower(), true)
+                            : SercheMatch(sub["SubtitleName"].ToString(), Matches.GroupRegex)).ToLower()
+                    where subSearchBy.Equals(searchBy)
                     select new[] {sub["Identifier"].ToString(), sub["SubtitleName"].ToString()}).FirstOrDefault();
             }
+
             catch (Exception)
             {
                 return null;
             }
-           
         }
     }
 }

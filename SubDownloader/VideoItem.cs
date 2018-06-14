@@ -26,8 +26,6 @@ namespace SubDownloader
 
         public string Group { get; set; }
 
-        public string Resolution { get; set; }
-
         public VideoItem(string filename, string name = null)
         {
             if (filename == null)
