@@ -48,7 +48,7 @@ namespace SubDownloader.Providers
             tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
             var id = Utils.GetWizdomId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
             if (id == "") yield break;
-            if (Uri.TryCreate(new Uri("http://json.wizdom.xyz/"), "[].zip".Replace("[]", id), out var url))
+            if (Uri.TryCreate(new Uri("http://zip.wizdom.xyz/"), "[].zip".Replace("[]", id), out var url))
                 yield return new SubtitleItem(id, url);
         }
     }

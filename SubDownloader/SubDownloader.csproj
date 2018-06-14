@@ -112,9 +112,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="ProgramSettings.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="ProgramSettings.cs" />
     <Compile Include="ProgramSettings.Designer.cs">
       <DependentUpon>ProgramSettings.cs</DependentUpon>
     </Compile>
