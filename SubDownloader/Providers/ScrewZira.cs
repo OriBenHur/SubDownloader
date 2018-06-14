@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+
 
 namespace SubDownloader.Providers
 {
-    public class Wizdom : ISubtitleProvider
+    public class ScrewZira : ISubtitleProvider
     {
-        public string Name => "Wizdom";
+        public string Name => "ScrewZira";
 
         public IEnumerable<SubtitleItem> GetSubtitles(VideoItem videoItem)
         {
@@ -17,6 +17,8 @@ namespace SubDownloader.Providers
             var yearSize = 0;
             var name = videoItem.Name;
             var season = videoItem.Season;
+
+            var isTv = videoItem.IsTv;
             if (season > 0)
                 se = season < 10 ? "s0" + season : "s" + season;
 
@@ -38,17 +40,15 @@ namespace SubDownloader.Providers
 
             var imdBid = Utils.GetImdbId(name, year, videoItem, api);
             if (imdBid.Equals("")) yield break;
-            Uri.TryCreate(new Uri("http://json.wizdom.xyz/"), "[].json".Replace("[]", imdBid), out var uri);
+            //var json = isTv ? Utils.SzGetTv(imdBid, episode, season, year) : Utils.SzGetMovie(imdBid, year);
+            //if (json == null) yield break;
 
-            var index = file.LastIndexOf(videoItem.Format, StringComparison.OrdinalIgnoreCase);
-            var tFile = file.Substring(index);
-            tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
-            tFile = Regex.Replace(tFile, videoItem.Format, string.Empty, RegexOptions.IgnoreCase);
-            tFile = tFile.StartsWith("-") ? tFile.Substring(1) : tFile;
-            var id = Utils.GetWizdomId(uri.ToString(), tFile, season.ToString(), episode.ToString(), videoItem);
-            if (id == "") yield break;
-            if (Uri.TryCreate(new Uri("http://json.wizdom.xyz/"), "[].zip".Replace("[]", id), out var url))
-                yield return new SubtitleItem(id, url);
+            var id = Utils.GetSZid(videoItem, isTv ? Utils.SzGetTv(imdBid, episode, season, year) : Utils.SzGetMovie(imdBid, year));
+            if (id == null) yield break;
+
+            //yield return id;
+            var url = new Uri("http://dummy");
+            yield return new SubtitleItem(id[1], url, id[0]);
         }
     }
 }

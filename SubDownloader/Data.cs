@@ -26,7 +26,10 @@ namespace SubDownloader
 
         public List<ISubtitleProvider> SubtitlesProviders => new List<ISubtitleProvider>
         {
+            //new Wizdom(),
+            new ScrewZira(),
             new Wizdom()
+            //new ScrewZira()
 
         };
 

@@ -171,59 +171,59 @@ namespace SubDownloader
                     VideoItem videoItem = videoItem1;
                     //if (!videoItem1.HaveSubtitles)
                     //{
-                        while (_activeConnections >= Data.Instance.MaxSimConnections)
-                        {
-                            Thread.Sleep(100);
-                            Application.DoEvents();
-                        }
-                        ++activeConnections[0];
-                        ++_activeConnections;
-                        ((Action)(() =>
+                    while (_activeConnections >= Data.Instance.MaxSimConnections)
+                    {
+                        Thread.Sleep(100);
+                        Application.DoEvents();
+                    }
+                    ++activeConnections[0];
+                    ++_activeConnections;
+                    ((Action)(() =>
+                   {
+                       foreach (ISubtitleProvider subtitlesProvider in Data.Instance.SubtitlesProviders)
                        {
-                           foreach (ISubtitleProvider subtitlesProvider in Data.Instance.SubtitlesProviders)
+                           Log("Processing " + videoItem.OriginalName + ", provider: " + subtitlesProvider.Name);
+                           List<SubtitleItem> subtitles = GetSubtitles(videoItem, subtitlesProvider);
+                           if (subtitles.Count > 0)
                            {
-                               Log("Processing " + videoItem.OriginalName + ", provider: " + subtitlesProvider.Name);
-                               List<SubtitleItem> subtitles = GetSubtitles(videoItem, subtitlesProvider);
-                               if (subtitles.Count > 0)
+                               Log(videoItem.OriginalName + ": Downloading subtitles.");
+                               var file = subtitlesProvider.Name.Equals("ScrewZira") ? Utils.DownloadSz(subtitles[0].ID) : Utils.DownloadFile(subtitles[0].Url);
+                               if (file != null)
                                {
-                                   Log(videoItem.OriginalName + ": Downloading subtitles.");
-                                   string file = Utils.DownloadFile(subtitles[0].Url);
-                                   if (file != null)
+                                   var str = subtitlesProvider.Name.Equals("ScrewZira") ? file : Utils.Extract(file);
+                                   if (str != null)
                                    {
-                                       string str = Utils.Extract(file);
-                                       if (str != null)
+                                       try
                                        {
-                                           try
-                                           {
-                                               var ext = Path.GetExtension(str).Equals(".str")
-                                                   ? ".srt"
-                                                   : Path.GetExtension(str);
-                                               var destFileName = Path.ChangeExtension(videoItem.FileName, ext);
-                                               if (destFileName != null) File.Copy(str, destFileName, true);
-                                               File.Delete(str);
-                                               Log(videoItem.OriginalName + ": Subtitles downloaded.", Color.Green);
-                                               break;
-                                           }
-                                           catch
-                                           {
-                                               Log(videoItem.OriginalName + ": Error while copying subtitle file.",
-                                                   Color.Red);
-                                           }
+                                           var ext = Path.GetExtension(str).Equals(".str")
+                                               ? ".srt"
+                                               : Path.GetExtension(str);
+                                           var destFileName = Path.ChangeExtension(videoItem.FileName, ext);
+                                           if (destFileName != null) File.Copy(str, destFileName, true);
+                                           File.Delete(str);
+                                           Log(videoItem.OriginalName + ": Subtitles downloaded.", Color.Green);
+                                           break;
                                        }
-                                       else
-                                           Log(videoItem.OriginalName + ": Extraction error.", Color.Red);
+                                       catch
+                                       {
+                                           Log(videoItem.OriginalName + ": Error while copying subtitle file.",
+                                               Color.Red);
+                                       }
                                    }
                                    else
-                                       Log(videoItem.OriginalName + ": Download error.", Color.Red);
+                                       Log(videoItem.OriginalName + ": Extraction error.", Color.Red);
                                }
                                else
-                                   Log(videoItem.OriginalName + ": No subtitles found.", Color.Red);
+                                   Log(videoItem.OriginalName + ": Download error.", Color.Red);
                            }
-                       })).BeginInvoke(iar =>
-                       {
-                           --activeConnections[0];
-                           --_activeConnections;
-                       }, null);
+                           else
+                               Log(videoItem.OriginalName + ": No subtitles found.", Color.Red);
+                       }
+                   })).BeginInvoke(iar =>
+                   {
+                       --activeConnections[0];
+                       --_activeConnections;
+                   }, null);
                     //}
                     //else
                     //    Log(videoItem.OriginalName + ": Already Have Subtitle", Color.Cyan);
@@ -241,24 +241,25 @@ namespace SubDownloader
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            var url = "https://oribenhur.github.io/Matches";
+            const string url = "https://oribenhur.github.io/Matches";
             var client = new WebClient();
-            var Values = new string[4];
+            var values = new string[4];
             var i = 0;
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             using (var stream = client.OpenRead(url))
-            using (var reader = new StreamReader(stream))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    Values[i] = line;
-                    i++;
-                }
-            }
-            Matches.GroupRegex = $@"\b({Values[0]})\b";
-            Matches.FormatRegex = $@"\b({Values[1]})\b";
-            Matches.FormatList = Values[2];
-            Matches.ResolutionList = Values[3];
+                if (stream != null)
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string line;
+                        while ((line = reader.ReadLine()) != null)
+                            values[i++] = line;
+                    }
+
+            Matches.GroupRegex = $@"\b({values[0]})\b";
+            Matches.FormatRegex = $@"\b({values[1]})\b";
+            Matches.FormatList = values[2];
+            Matches.ResolutionList = values[3];
             if (_initialized) return;
             _initialized = true;
             Log("Program loaded, initializing UI...");

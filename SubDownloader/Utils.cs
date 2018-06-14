@@ -10,15 +10,17 @@ using Newtonsoft.Json.Linq;
 using TMDbLib.Client;
 using TVDBSharp;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using RestSharp;
+using RestSharp.Extensions;
 using TMDbLib.Objects.TvShows;
-
-
 namespace SubDownloader
 
 {
     public static class Utils
     {
         #region Cooment
+
         //private static string GetHtml(Uri uri, out Uri responseUri)
         //{
         //    string str = null;
@@ -48,17 +50,41 @@ namespace SubDownloader
         //    Uri responseUri;
         //    return GetHtml(uri, out responseUri);
         //}
+
         #endregion
 
-        
+
+        public static string DownloadSz(string id)
+        {
+            JObject json = new JObject();
+            var requestJson = new JObject
+            {
+                {"subtitleID", id}
+            };
+            json.Add("request", requestJson);
+            var client = new RestClient("http://api.screwzira.com/Download");
+            var request = new RestRequest { Method = Method.POST };
+            request.AddHeader("Accept", "application/json");
+            request.AddHeader("Content-Type", "application/json");
+            request.AddHeader("Accept-Encoding", "UTF-8");   
+            request.Parameters.Clear();
+            request.AddParameter("application/json", json.ToString(), ParameterType.RequestBody);
+            var tempFileName = Path.GetTempFileName().Replace("tmp","srt");
+            var response = client.Execute(request);
+            response.ContentType = "application/force-download";
+            if (response.Headers[2].Value.Equals("0")) return null;
+            response.RawBytes.SaveAs(tempFileName);
+            return tempFileName;
+        }
 
         public static string DownloadFile(Uri uri)
         {
+
             string str = null;
             try
             {
-                string tempFileName = Path.GetTempFileName();
-                using (WebClient webClient = new WebClient())
+                var tempFileName = Path.GetTempFileName();
+                using (var webClient = new WebClient())
                     webClient.DownloadFile(uri, tempFileName);
                 str = tempFileName;
             }
@@ -66,6 +92,7 @@ namespace SubDownloader
             {
                 // ignored
             }
+
             return str;
         }
 
@@ -86,6 +113,7 @@ namespace SubDownloader
                             zipEntry.Extract(tempPath, ExtractExistingFileAction.OverwriteSilently);
                             str = Path.Combine(tempPath, zipEntry.FileName);
                         }
+
                         if (deleteOriginal)
                         {
                             zipFile.Dispose();
@@ -98,6 +126,7 @@ namespace SubDownloader
                     }
                 }
             }
+
             return str;
         }
 
@@ -122,6 +151,7 @@ namespace SubDownloader
                 if (strArray2.Contains(t))
                     ++num2;
             }
+
             return num2 / num1 * 100.0;
         }
 
@@ -136,10 +166,11 @@ namespace SubDownloader
                                     (s.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase) ||
                                      s.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)))
                     let flag =
-                    Data.Instance.FileNameFilters.Any(fileNameFilter => filename.ToLower().Contains(fileNameFilter))
+                        Data.Instance.FileNameFilters.Any(fileNameFilter => filename.ToLower().Contains(fileNameFilter))
                     where !flag
                     select new VideoItem(filename));
             }
+
             return videoItemList;
         }
 
@@ -149,14 +180,16 @@ namespace SubDownloader
             var spRegex = new Regex(@"[S][0-9]{2}[E][0-9]{2}");
             var sXregex = new Regex(@"([0-9]{1,2}[xX][0-9]{2})");
             var threeRegex = new Regex(@"(\b\d{3}\b[.])");
-            return file != null && (sp.IsMatch(file) || spRegex.IsMatch(file) || sXregex.IsMatch(file) || threeRegex.IsMatch(file));
+            return file != null && (sp.IsMatch(file) || spRegex.IsMatch(file) || sXregex.IsMatch(file) ||
+                                    threeRegex.IsMatch(file));
         }
 
 
-        
-        internal static string GetId(string jsonUrl, string input, string s, string e, VideoItem videoitem)
+
+        internal static string GetWizdomId(string jsonUrl, string input, string s, string e, VideoItem videoitem)
         {
             #region Cooment
+
             //Browser browser = new Browser();
             //browser.Goto();
             ////var respons = browser.RequestingSecureUrlRedirectsToLogOn();
@@ -177,19 +210,26 @@ namespace SubDownloader
             ////XmlDocument xmlDoc = new XmlDocument();
             ////xmlDoc.LoadXml(xml);
             ////string jsonText = JsonConvert.SerializeXmlNode(xmlDoc);
+
             #endregion
+
             var searchTerm = "release_group";
             videoitem.Group = SercheMatch(input, Matches.GroupRegex);
             var searchBy = videoitem.Group;
             videoitem.Resolution = SercheMatch(videoitem.Format, Matches.ResolutionList, true);
             if (videoitem.Group.Equals(""))
             {
-                var noGroup = Data.Instance.AutoMode ? DialogResult.OK : MessageBox.Show($@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?", @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
+                var noGroup = Data.Instance.AutoMode
+                    ? DialogResult.OK
+                    : MessageBox.Show(
+                        $@"Can't Find Release Group in: {Environment.NewLine} {videoitem.FileName} {Environment.NewLine} Would you like me to try and guess?",
+                        @"Can't Find Release Group Name", MessageBoxButtons.YesNo);
                 if (noGroup == DialogResult.No) return "";
                 searchBy = SercheMatch(videoitem.Format.ToLower(), Matches.FormatList.ToLower(), true);
                 searchBy = searchBy.Equals("WEB".ToLower()) ? "WEB-DL" : searchBy;
                 searchTerm = "format";
             }
+
             using (var webClient = new WebClient())
             {
                 webClient.Encoding = Encoding.UTF8;
@@ -201,14 +241,23 @@ namespace SubDownloader
                 if (subs == null) return "";
                 foreach (var sub in subs)
                 {
-                    if(sub[searchTerm] == null) continue;
+                    if (sub[searchTerm] == null) continue;
                     var subTerm = sub[searchTerm]?.ToString().ToLower();
-                    //var subResol = sub["resolution"]?.ToString().ToLower() ?? "";
                     if (sub[searchTerm] == null) continue;
                     if (!subTerm.Equals(searchBy.ToLower())) continue;
-                    //if (!subResol.Equals(videoitem.Resolution)) continue;
-                    if (Extract(DownloadFile(new Uri(@"http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString())))) != null)
-                        return sub["id"].ToString();
+                    var url = "http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString());
+                    //var url = "http://zip.wizdom.xyz/[].zip".Replace("[]", "23124124324235235345344");
+                    using (var client = new WebClient())
+                    {
+                        client.OpenRead(url);
+                        if(Convert.ToInt64(client.ResponseHeaders["Content-Length"]) > 0 )
+                            return sub["id"].ToString();
+                    }
+                    
+                    
+                    //if (Extract(DownloadFile(
+                    //        new Uri(@"http://zip.wizdom.xyz/[].zip".Replace("[]", sub["id"].ToString())))) != null)
+                           
                 }
             }
 
@@ -235,12 +284,13 @@ namespace SubDownloader
 
         internal static string GetImdbId(string name, int year, VideoItem videoItem, ApiKeys apiKeys)
         {
-            var tvdBapikey = apiKeys.TvdBapikey;
-            var tmdBapikey = apiKeys.TmdBapikey;
-
+			
+			var tvdBapikey = apiKeys.TvdBapikey; //if you are using the source code replace this to your TvdB api key
+            var tmdBapikey = apiKeys.TmdBapikey; //if you are using the source code replace this to your TmdB api key
+ 
             if (videoItem.IsTv)
             {
-                if(HealthCheck("http://thetvdb.com"))
+                if (HealthCheck("http://thetvdb.com"))
                 {
                     var tvdb = new TVDB(tvdBapikey);
                     var searchResults = tvdb.Search(name);
@@ -284,11 +334,6 @@ namespace SubDownloader
             return "";
         }
 
-        //internal static string FixSeriesName(string name)
-        //{
-        //    return string.Equals(name, null, StringComparison.Ordinal) ? null : name.Replace(" ", "-");
-        //}
-
         public static int GetYear(string file)
         {
             const string mPattern = "(?:(?:19|20)[0-9]{2})";
@@ -300,18 +345,108 @@ namespace SubDownloader
         {
             var tmp = @"";
             var index = new List<int>();
-            foreach (Match match in Regex.Matches(input.ToLower(), pattern.ToLower(),RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline))
+            foreach (Match match in Regex.Matches(input.ToLower(), pattern.ToLower(),
+                RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline))
             {
                 tmp = match.Value;
 
                 index.Add(input.ToLower().IndexOf(tmp, StringComparison.Ordinal));
                 if (first) return tmp;
             }
+
             if (index.Count == 0) return "";
             var size = index[index.Count - 1] + tmp.Length + 1 - index[0];
             if (size - input.Length == 1 || size - input.Length == 0) return input;
             return index.Count > 1 ? input.Substring(index[0], size) : tmp;
         }
 
+
+        /// <summary>
+        /// SzGetTV
+        /// </summary>
+        /// <param name="searchPhrase">	ImdbID / Film name / Exact film release</param>
+        /// <param name="episode">Episode number</param>
+        /// <param name="season">Season number Key</param>
+        /// <param name="searchType">FilmName, Subtitle, ImdbID</param>
+        /// <param name="version">1.0</param>
+        /// <param name="year">	Year of release (yyy)</param>
+        /// <returns></returns>
+        public static string SzGetTv(string searchPhrase, int episode, int season, int year = 0, string searchType = "ImdbID", string version = "1.0")
+        {
+            JObject json = new JObject();
+            var requestJson = new JObject
+            {
+                {"SearchPhrase", searchPhrase},
+                {"SearchType", searchType},
+                {"Episode", episode},
+                {"Season", season},
+                {"Year", year},
+                {"Version", version}
+            };
+            json.Add("request", requestJson);
+            var client = new RestClient("http://api.screwzira.com/FindSeries");
+            //var client = new RestClient("http://api.screwzira.com/FindFilm");
+            var request = new RestRequest { Method = Method.POST };
+            request.AddHeader("Accept", "application/json");
+            request.Parameters.Clear();
+            request.AddParameter("application/json", json.ToString(), ParameterType.RequestBody);
+            var response = client.Execute(request);
+            var deserializeObjectJson = (string) JsonConvert.DeserializeObject(response.Content);
+            var token = JObject.Parse(deserializeObjectJson);
+            var results = token.SelectToken("Results");
+            return results.HasValues ? deserializeObjectJson : null;
+        }
+
+
+        /// <summary>
+        /// SzGetMovie
+        /// </summary>
+        /// <param name="searchPhrase">	ImdbID / Film name / Exact film release</param>
+        /// <param name="searchType">FilmName, Subtitle, ImdbID</param>
+        /// <param name="version">1.0</param>
+        /// <param name="year">	Year of release (yyyy)</param>
+        /// <returns></returns>
+        public static string SzGetMovie(string searchPhrase, int year = 0, string searchType = "ImdbID", string version = "1.0")
+        {
+            var json = new JObject();
+            var requestJson = new JObject
+            {
+                {"SearchPhrase", searchPhrase},
+                {"SearchType", searchType},
+                {"Year", year},
+                {"Version", version}
+            };
+            json.Add("request", requestJson);
+            var client = new RestClient("http://api.screwzira.com/FindFilm");
+            var request = new RestRequest { Method = Method.POST };
+            request.AddHeader("Accept", "application/json");
+            request.Parameters.Clear();
+            request.AddParameter("application/json", json.ToString(), ParameterType.RequestBody);
+            var response = client.Execute(request);
+            var deserializeObjectJson = (string)JsonConvert.DeserializeObject(response.Content);
+            var token = JObject.Parse(deserializeObjectJson);
+            var results = token.SelectToken("Results");
+            return results.HasValues ? deserializeObjectJson : null;
+
+        }
+
+
+        public static string[] GetSZid(VideoItem videoItem, string json)
+        {
+            try
+            {
+                var token = JObject.Parse(json);
+                var subs = token.SelectToken("Results");
+                return (from sub in subs
+                    where videoItem.FileName != null &&
+                          Path.GetFileName(videoItem.FileName).Contains(sub["SubtitleName"].ToString())
+                    select new[] {sub["Identifier"].ToString(), sub["SubtitleName"].ToString()}).FirstOrDefault();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+           
+        }
     }
 }

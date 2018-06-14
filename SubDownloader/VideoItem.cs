@@ -58,7 +58,6 @@ namespace SubDownloader
                 var filename = tmpRegex.Replace(OriginalName, string.Empty);
                 filename = filename.EndsWith(".") ? filename.Substring(0, filename.Length - 1) : filename;
                 ExtraInfo = OriginalName.Replace(filename + ".", string.Empty);
-
                 Name = ApplyTranslators(filename.CleanString().ToLower());
             }
 
